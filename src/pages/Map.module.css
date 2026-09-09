@@ -1,12 +1,4 @@
-/* Hero 3D: canvas fijo + capa decorativa (encima del canvas, debajo del HUD). */
-
-.canvasHolder {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  width: 100vw;
-  height: 100dvh;
-}
+/* Hero 3D: capa decorativa (posición fija se aplica inline en Map.tsx). */
 
 .heroDecor {
   position: fixed;

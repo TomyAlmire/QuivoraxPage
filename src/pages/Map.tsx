@@ -44,27 +44,33 @@ export function MapPage() {
 
   return (
     <>
-      <div
-        className={styles.canvasHolder}
-        style={{ opacity: 1 - hero * 0.92, pointerEvents: away ? 'none' : undefined }}
-        aria-hidden={away}
+      <Canvas
+        style={{
+          position: 'fixed',
+          inset: 0,
+          width: '100vw',
+          height: '100dvh',
+          zIndex: 0,
+          opacity: 1 - hero * 0.92,
+          pointerEvents: away ? 'none' : 'auto',
+        }}
+        dpr={[1, device.dprMax]}
+        gl={CANVAS_GL}
+        frameloop={away ? 'demand' : 'always'}
+        camera={{ position: [0, 1, 22], fov: isMobile ? 55 : 42, near: 0.1, far: 120 }}
+        resize={{ scroll: false }}
+        onCreated={({ gl }) => configureRenderer(gl)}
       >
-        <Canvas
-          style={{ width: '100%', height: '100%' }}
-          dpr={[1, device.dprMax]}
-          gl={CANVAS_GL}
-          frameloop={away ? 'demand' : 'always'}
-          camera={{ position: [0, 1, 22], fov: isMobile ? 55 : 42, near: 0.1, far: 120 }}
-          resize={{ scroll: false }}
-          onCreated={({ gl }) => configureRenderer(gl)}
-        >
-          <Suspense fallback={null}>
-            <MapScene />
-          </Suspense>
-        </Canvas>
-      </div>
+        <Suspense fallback={null}>
+          <MapScene />
+        </Suspense>
+      </Canvas>
 
-      <div className={styles.heroDecor} style={{ opacity: 1 - hero }} aria-hidden>
+      <div
+        className={styles.heroDecor}
+        style={{ position: 'fixed', inset: 0, zIndex: 1, pointerEvents: 'none', opacity: 1 - hero }}
+        aria-hidden
+      >
         <div className={styles.grain} />
         <div className={styles.vignette} />
         <div className={styles.frame} />
