@@ -18,22 +18,26 @@
   pointer-events: none;
 }
 
+/* panel que "se mete" por encima del hero 3D al scrollear */
 .main {
   position: relative;
   background: var(--bg);
-  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 30px 30px 0 0;
+  box-shadow:
+    0 -30px 70px -20px rgba(0, 0, 0, 0.7),
+    0 -1px 0 rgba(255, 255, 255, 0.09) inset;
   pointer-events: auto;
 }
-/* transición suave desde el 3D */
 .main::before {
   content: '';
   position: absolute;
-  left: 0;
-  right: 0;
-  top: -80px;
-  height: 80px;
-  background: linear-gradient(to bottom, transparent, var(--bg));
-  pointer-events: none;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 44px;
+  height: 3px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.16);
 }
 
 .section {
@@ -359,6 +363,24 @@
 }
 .footYear {
   opacity: 0.6;
+}
+
+/* ---- reveal al entrar en viewport ---- */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal[data-inview] {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }
 
 /* ---- responsive ---- */

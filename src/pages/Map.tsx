@@ -26,7 +26,12 @@ export function MapPage() {
   const node = useMapStore((s) => s.node);
   const isMobile = useIsMobile();
   const hero = useHeroProgress();
-  const away = hero > 0.85;
+  const away = hero > 0.9;
+
+  // el hero "retrocede" mientras entra el contenido (solo la capa decorativa,
+  // no el <Canvas>: aplicarle transform rompe la medición de R3F)
+  const ease = hero * hero * (3 - 2 * hero); // smoothstep
+  const decorTransform = hero > 0.001 ? `scale(${1 - ease * 0.05}) translateY(${ease * -14}px)` : undefined;
 
   useHashRoute();
   useMapKeys();
@@ -51,7 +56,7 @@ export function MapPage() {
           width: '100vw',
           height: '100dvh',
           zIndex: 0,
-          opacity: 1 - hero * 0.92,
+          opacity: 1 - hero * 0.88,
           pointerEvents: away ? 'none' : 'auto',
         }}
         dpr={[1, device.dprMax]}
@@ -68,7 +73,15 @@ export function MapPage() {
 
       <div
         className={styles.heroDecor}
-        style={{ position: 'fixed', inset: 0, zIndex: 1, pointerEvents: 'none', opacity: 1 - hero }}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 1,
+          pointerEvents: 'none',
+          opacity: 1 - hero,
+          transform: decorTransform,
+          transformOrigin: 'center 42%',
+        }}
         aria-hidden
       >
         <div className={styles.grain} />

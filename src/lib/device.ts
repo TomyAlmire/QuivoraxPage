@@ -23,6 +23,8 @@ export interface DeviceProfile {
   liveReflections: boolean;
   /** Vidrio real (material.transmission). 1 pasada compartida — ok salvo en 'low'. */
   glassTransmission: boolean;
+  /** Atmósfera recortada: fondo simple, menos partículas, menos bloom. */
+  lite: boolean;
   /** Resolución sugerida para sombras */
   shadowMapSize: number;
   prefersReducedMotion: boolean;
@@ -104,6 +106,7 @@ export function getDeviceProfile(): DeviceProfile {
     heavyPostFX: tier === 'high',
     liveReflections: tier === 'high' && !prefersReducedMotion,
     glassTransmission: tier !== 'low',
+    lite: tier === 'low' || isMobile,
     shadowMapSize: tier === 'low' ? 512 : tier === 'mid' ? 1024 : 2048,
   };
 

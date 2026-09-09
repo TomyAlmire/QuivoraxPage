@@ -53,8 +53,17 @@ function nodeActivity(
 }
 
 /** ¿mostrar la etiqueta de texto de este nodo? */
-function labelVisibility(node: MapNode, mode: string, branch: string | null, hovered: string | null): number {
+function labelVisibility(
+  node: MapNode,
+  mode: string,
+  branch: string | null,
+  hovered: string | null,
+  mobile: boolean,
+): number {
   if (hovered === node.id) return 1;
+  // en celular, hojas y trabajos NO muestran etiqueta salvo al tocarlos
+  // (si no se satura). Los cores y el núcleo sí.
+  if (mobile && (node.kind === 'leaf' || node.kind === 'work')) return 0;
   if (node.kind === 'work') return mode === 'branch' && node.branch === branch ? 0.9 : 0;
   if (node.kind === 'root') return mode === 'map' || mode === 'intro' ? 0.9 : 0;
   if (node.kind === 'contact') {
@@ -105,6 +114,7 @@ function NodeMesh({ node }: { node: MapNode }) {
   const seed = useMemo(() => node.position[0] * 1.7 + node.position[1] * 0.9, [node]);
 
   const glass = useAppStore((s) => s.device.glassTransmission);
+  const lite = useAppStore((s) => s.device.lite);
 
   const isContact = node.kind === 'contact';
   const isWork = node.kind === 'work';
@@ -188,7 +198,7 @@ function NodeMesh({ node }: { node: MapNode }) {
       pingMat.current.opacity = mode === 'node' ? 0 : (1 - cyc) * (1 - cyc) * 0.32;
     }
     if (labelWrap.current) {
-      const lv = labelVisibility(node, mode, branch, hovered);
+      const lv = labelVisibility(node, mode, branch, hovered, lite);
       const cur = Number(labelWrap.current.dataset.o ?? '0');
       const next = THREE.MathUtils.lerp(cur, lv, 1 - Math.pow(0.02, delta));
       labelWrap.current.dataset.o = String(next);

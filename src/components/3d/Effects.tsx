@@ -50,7 +50,9 @@ export function Effects({
 
   // DoF: pasada pesada. Alto siempre; medio sólo en desktop; nunca en 'low'.
   const useDof = depthOfField && !reduced && (tier === 'high' || (tier === 'mid' && !isMobile));
-  const bloomStrength = tier === 'low' ? bloomIntensity * 0.55 : bloomIntensity;
+  const bloomStrength = tier === 'low' ? bloomIntensity * 0.45 : bloomIntensity;
+  const bloomThreshold = tier === 'low' ? 0.94 : 0.9;
+  const sat = tier === 'low' ? 0.02 : 0.12;
 
   const passes = useMemo<ReactElement[]>(() => {
     if (reduced) return [];
@@ -61,7 +63,7 @@ export function Effects({
         <Bloom
           key="bloom"
           intensity={bloomStrength}
-          luminanceThreshold={0.9}
+          luminanceThreshold={bloomThreshold}
           luminanceSmoothing={0.2}
           mipmapBlur
         />,
@@ -84,7 +86,7 @@ export function Effects({
     }
     if (colorGrade) {
       list.push(<BrightnessContrast key="bc" brightness={0} contrast={0.08} />);
-      list.push(<HueSaturation key="hs" hue={0} saturation={0.12} />);
+      list.push(<HueSaturation key="hs" hue={0} saturation={sat} />);
     }
     if (noise) {
       list.push(
@@ -99,6 +101,8 @@ export function Effects({
     reduced,
     bloom,
     bloomStrength,
+    bloomThreshold,
+    sat,
     useDof,
     chromaticAberration,
     caOffset,

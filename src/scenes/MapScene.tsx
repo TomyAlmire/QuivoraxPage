@@ -37,11 +37,12 @@ function Backdrop() {
 
 export function MapScene() {
   const tier = useAppStore((s) => s.quality());
+  const lite = useAppStore((s) => s.device.lite);
 
   return (
     <>
       <color attach="background" args={['#04070c']} />
-      <fog attach="fog" args={['#05090f', 18, 50]} />
+      <fog attach="fog" args={['#05090f', lite ? 13 : 18, lite ? 34 : 50]} />
 
       <MapCamera />
 
@@ -67,13 +68,16 @@ export function MapScene() {
       </Suspense>
 
       {/* motas de datos flotando en el ciberespacio */}
-      <Particles radius={17} color="#5bd0ff" density={tier === 'low' ? 0.5 : 0.7} />
+      <Particles
+        radius={lite ? 12 : 17}
+        color="#5bd0ff"
+        density={lite ? 0.18 : tier === 'mid' ? 0.6 : 0.7}
+        size={lite ? 13 : 24}
+      />
 
-      <Effects bloom vignette colorGrade bloomIntensity={0.42} />
+      <Effects bloom vignette colorGrade bloomIntensity={lite ? 0.26 : 0.42} />
 
-      <Suspense fallback={null}>
-        <DebugPerf />
-      </Suspense>
+      <Suspense fallback={null}>{!lite && <DebugPerf />}</Suspense>
     </>
   );
 }

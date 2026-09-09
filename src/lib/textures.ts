@@ -22,6 +22,52 @@ export function glowTexture(): THREE.Texture {
   return glow;
 }
 
+let bgLite: THREE.Texture | null = null;
+
+/**
+ * Fondo simple para mobile / tier bajo: degradé frío + viñeta + un par de
+ * glows muy suaves. Sin malla de puntos ni scanlines (que en pantallas
+ * chicas se ven como ruido de color). Canvas chico cacheado.
+ */
+export function bgSimpleTexture(): THREE.Texture {
+  if (bgLite) return bgLite;
+  const w = 512;
+  const h = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const g = ctx.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, '#0a121d');
+    g.addColorStop(0.55, '#060c14');
+    g.addColorStop(1, '#03070c');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+
+    const glow = (x: number, y: number, r: number, color: string, a: number) => {
+      const rg = ctx.createRadialGradient(x, y, 0, x, y, r);
+      rg.addColorStop(0, color);
+      rg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.globalAlpha = a;
+      ctx.fillStyle = rg;
+      ctx.fillRect(0, 0, w, h);
+    };
+    glow(w * 0.35, h * 0.4, 240, '#16305a', 0.35);
+    glow(w * 0.7, h * 0.62, 200, '#1c2450', 0.25);
+    ctx.globalAlpha = 1;
+
+    const vg = ctx.createRadialGradient(w / 2, h / 2, h * 0.2, w / 2, h / 2, w * 0.7);
+    vg.addColorStop(0, 'rgba(0,0,0,0)');
+    vg.addColorStop(1, 'rgba(0,0,0,0.5)');
+    ctx.fillStyle = vg;
+    ctx.fillRect(0, 0, w, h);
+  }
+  bgLite = new THREE.CanvasTexture(canvas);
+  bgLite.colorSpace = THREE.SRGBColorSpace;
+  return bgLite;
+}
+
 let bg: THREE.Texture | null = null;
 
 /**

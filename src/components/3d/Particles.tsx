@@ -11,13 +11,15 @@ interface ParticlesProps {
   color?: string;
   /** Fracción del presupuesto de partículas del dispositivo a usar (0..1) */
   density?: number;
+  /** Tamaño base del punto (uniform uSize) */
+  size?: number;
 }
 
 /**
  * Nube de partículas en shader. El nº de puntos sale de `device.particleBudget`
  * (low ~1.2k / mid ~6k / high ~20k), así que en mobile ya viene limitada.
  */
-export function Particles({ radius = 6, color = '#8fb3ff', density = 1 }: ParticlesProps) {
+export function Particles({ radius = 6, color = '#8fb3ff', density = 1, size = 24 }: ParticlesProps) {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const budget = useAppStore((s) => s.device.particleBudget);
   const dpr = useThree((s) => s.viewport.dpr);
@@ -47,14 +49,14 @@ export function Particles({ radius = 6, color = '#8fb3ff', density = 1 }: Partic
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uSize: { value: 24 },
+      uSize: { value: size },
       uDrift: { value: 0.7 },
       uColor: { value: new THREE.Color(color) },
       uPointer: { value: new THREE.Vector2(0, 0) },
       uPointerRadius: { value: 0.8 },
       uPixelRatio: { value: dpr },
     }),
-    [color, dpr],
+    [color, dpr, size],
   );
 
   useFrame((_, delta) => {
