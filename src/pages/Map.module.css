@@ -1,0 +1,99 @@
+/* Overlay decorativo de la página del mapa (encima del canvas, debajo del HUD). */
+
+.grain {
+  position: fixed;
+  inset: -50%;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain 5s steps(4) infinite;
+}
+@keyframes grain {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  33% {
+    transform: translate(-2%, 1%);
+  }
+  66% {
+    transform: translate(1%, -2%);
+  }
+}
+
+.vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 45%, transparent 45%, rgba(2, 4, 8, 0.55) 100%);
+}
+
+/* marcos de esquina tipo HUD/scanner */
+.frame {
+  position: fixed;
+  inset: clamp(0.9rem, 2.5vw, 1.6rem);
+  z-index: 1;
+  pointer-events: none;
+}
+.frame::before,
+.frame::after {
+  content: "";
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+.frame::before {
+  top: 0;
+  left: 0;
+  border-right: 0;
+  border-bottom: 0;
+}
+.frame::after {
+  bottom: 0;
+  right: 0;
+  border-left: 0;
+  border-top: 0;
+}
+.frameB {
+  position: fixed;
+  inset: clamp(0.9rem, 2.5vw, 1.6rem);
+  z-index: 1;
+  pointer-events: none;
+}
+.frameB::before,
+.frameB::after {
+  content: "";
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+.frameB::before {
+  top: 0;
+  right: 0;
+  border-left: 0;
+  border-bottom: 0;
+}
+.frameB::after {
+  bottom: 0;
+  left: 0;
+  border-right: 0;
+  border-top: 0;
+}
+
+/* coordenada decorativa arriba-derecha (cambia con el modo) */
+.coord {
+  position: fixed;
+  top: clamp(1rem, 3vw, 2rem);
+  right: clamp(3.5rem, 8vw, 6rem);
+  z-index: 1;
+  pointer-events: none;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  color: var(--ink-mute);
+}

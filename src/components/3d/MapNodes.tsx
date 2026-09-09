@@ -1,11 +1,12 @@
 import { useMemo, useRef } from 'react';
 import { useFrame, type ThreeEvent } from '@react-three/fiber';
+import { Billboard, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { NODES, nodeColor, type MapNode } from '@/data/map';
 import { useMapStore } from '@/store/useMapStore';
 import { glowTexture } from '@/lib/textures';
 
-/** ¿este nodo está "activo" en el estado actual? */
+/** ¿este nodo está "activo" en el estado actual? 0..1 */
 function nodeActivity(
   node: MapNode,
   mode: string,
@@ -14,25 +15,42 @@ function nodeActivity(
   hovered: string | null,
 ): number {
   if (hovered === node.id) return 1;
-  if (mode === 'node') return selected === node.id ? 1 : 0.12;
-  if (mode === 'branch') return node.branch === branch || node.kind === 'root' ? 0.85 : 0.14;
-  // map / intro
-  return node.kind === 'root' ? 1 : 0.6;
+  if (mode === 'node') return selected === node.id ? 1 : 0.1;
+  if (mode === 'branch') return node.branch === branch || node.kind === 'root' ? 0.9 : 0.12;
+  return node.kind === 'root' ? 1 : 0.62;
 }
 
-interface NodeMeshProps {
-  node: MapNode;
+/** ¿mostrar la etiqueta de texto de este nodo? */
+function labelVisibility(node: MapNode, mode: string, branch: string | null, hovered: string | null): number {
+  if (hovered === node.id) return 1;
+  if (node.kind === 'root') return mode === 'map' || mode === 'intro' ? 0.9 : 0;
+  if (node.kind === 'contact') return mode === 'map' ? 0.7 : 0;
+  if (node.kind === 'core') {
+    if (mode === 'map' || mode === 'intro') return 0.85;
+    if (mode === 'branch') return node.branch === branch ? 1 : 0;
+    return 0;
+  }
+  // leaf: solo cuando su rama está enfocada
+  if (mode === 'branch' && node.branch === branch) return 0.8;
+  return 0;
 }
 
-function NodeMesh({ node }: NodeMeshProps) {
-  const group = useRef<THREE.Group>(null);
+function NodeMesh({ node }: { node: MapNode }) {
+  const outer = useRef<THREE.Group>(null);
+  const inner = useRef<THREE.Group>(null);
   const mat = useRef<THREE.MeshStandardMaterial>(null);
   const glowMat = useRef<THREE.SpriteMaterial>(null);
-  const glowRef = useRef<THREE.Sprite>(null);
+  const ringMat = useRef<THREE.MeshBasicMaterial>(null);
+  const ring = useRef<THREE.Mesh>(null);
+  const labelWrap = useRef<HTMLDivElement>(null);
 
   const color = useMemo(() => new THREE.Color(nodeColor(node)), [node]);
+  const colorHex = useMemo(() => `#${color.getHexString()}`, [color]);
   const glowMap = useMemo(() => glowTexture(), []);
-  const baseSize = node.kind === 'root' ? 0.5 : node.kind === 'core' ? 0.34 : node.kind === 'contact' ? 0.26 : 0.2;
+
+  const baseSize =
+    node.kind === 'root' ? 0.52 : node.kind === 'core' ? 0.36 : node.kind === 'contact' ? 0.26 : 0.19;
+  const showRing = node.kind === 'root' || node.kind === 'core';
 
   const setHovered = useMapStore((s) => s.setHovered);
   const goNode = useMapStore((s) => s.goNode);
@@ -40,25 +58,40 @@ function NodeMesh({ node }: NodeMeshProps) {
   useFrame((state, delta) => {
     const { mode, branch, node: selected, hovered } = useMapStore.getState();
     const act = nodeActivity(node, mode, branch, selected, hovered);
-    const damp = 1 - Math.pow(0.001, delta);
+    const damp = 1 - Math.pow(0.0015, delta);
+    const t = state.clock.elapsedTime;
 
-    if (group.current) {
-      const target = baseSize * (0.85 + act * 0.5);
-      group.current.scale.lerp(new THREE.Vector3(target, target, target), damp);
-      // leve flotación
-      group.current.position.y = node.position[1] + Math.sin(state.clock.elapsedTime * 0.8 + node.position[0]) * 0.05;
+    if (outer.current) {
+      outer.current.position.y = node.position[1] + Math.sin(t * 0.7 + node.position[0]) * 0.06;
+      outer.current.position.x = node.position[0] + Math.cos(t * 0.5 + node.position[1]) * 0.04;
+    }
+    if (inner.current) {
+      const s = baseSize * (0.8 + act * 0.55);
+      inner.current.scale.lerp(new THREE.Vector3(s, s, s), damp);
     }
     if (mat.current) {
-      mat.current.emissiveIntensity = THREE.MathUtils.lerp(mat.current.emissiveIntensity, 0.4 + act * 2.6, damp);
-      mat.current.opacity = THREE.MathUtils.lerp(mat.current.opacity, 0.25 + act * 0.75, damp);
+      mat.current.emissiveIntensity = THREE.MathUtils.lerp(mat.current.emissiveIntensity, 0.5 + act * 3, damp);
+      mat.current.opacity = THREE.MathUtils.lerp(mat.current.opacity, 0.3 + act * 0.7, damp);
     }
     if (glowMat.current) {
-      const targetGlow = act * (hovered === node.id ? 0.9 : 0.55);
-      glowMat.current.opacity = THREE.MathUtils.lerp(glowMat.current.opacity, targetGlow, damp);
+      const target = 0.12 + act * (hovered === node.id ? 0.85 : 0.5);
+      glowMat.current.opacity = THREE.MathUtils.lerp(glowMat.current.opacity, target, damp);
     }
-    if (glowRef.current) {
-      const pulse = 4.5 + Math.sin(state.clock.elapsedTime * 1.4 + node.position[1]) * 0.4;
-      glowRef.current.scale.setScalar(pulse);
+    if (ring.current && ringMat.current) {
+      ring.current.rotation.z = t * (node.kind === 'root' ? 0.25 : 0.5) * (node.position[0] > 0 ? 1 : -1);
+      const rt = showRing ? 0.1 + act * 0.55 : 0;
+      ringMat.current.opacity = THREE.MathUtils.lerp(ringMat.current.opacity, rt, damp);
+      const rs = (node.kind === 'root' ? 1.5 : 1.05) + Math.sin(t * 1.2 + node.position[1]) * 0.06;
+      ring.current.scale.setScalar(rs);
+    }
+    if (labelWrap.current) {
+      const lv = labelVisibility(node, mode, branch, hovered);
+      const cur = Number(labelWrap.current.dataset.o ?? '0');
+      const next = THREE.MathUtils.lerp(cur, lv, 1 - Math.pow(0.02, delta));
+      labelWrap.current.dataset.o = String(next);
+      labelWrap.current.style.opacity = String(next);
+      labelWrap.current.style.transform = `translate(-50%,-50%) translateY(${(1 - next) * 6}px)`;
+      labelWrap.current.style.pointerEvents = next > 0.5 ? 'auto' : 'none';
     }
   });
 
@@ -77,31 +110,91 @@ function NodeMesh({ node }: NodeMeshProps) {
   };
 
   return (
-    <group ref={group} position={node.position}>
-      <mesh onPointerOver={onOver} onPointerOut={onOut} onClick={onClick}>
-        <sphereGeometry args={[1, 24, 24]} />
-        <meshStandardMaterial
-          ref={mat}
-          color={color}
-          emissive={color}
-          emissiveIntensity={1}
-          roughness={0.35}
-          metalness={0}
-          transparent
-          opacity={0.9}
-        />
-      </mesh>
-      <sprite ref={glowRef} scale={4.5}>
+    <group ref={outer} position={node.position}>
+      <group ref={inner} scale={baseSize}>
+        <mesh onPointerOver={onOver} onPointerOut={onOut} onClick={onClick}>
+          <sphereGeometry args={[1, 28, 28]} />
+          <meshStandardMaterial
+            ref={mat}
+            color={color}
+            emissive={color}
+            emissiveIntensity={1}
+            roughness={0.3}
+            metalness={0.1}
+            transparent
+            opacity={0.9}
+          />
+        </mesh>
+        {/* núcleo interior brillante */}
+        <mesh scale={0.55}>
+          <sphereGeometry args={[1, 16, 16]} />
+          <meshBasicMaterial color="#ffffff" transparent opacity={0.85} toneMapped={false} />
+        </mesh>
+      </group>
+
+      {showRing && (
+        <Billboard>
+          <mesh ref={ring} scale={node.kind === 'root' ? 1.5 : 1.05}>
+            <ringGeometry args={[0.9, 0.96, 64]} />
+            <meshBasicMaterial
+              ref={ringMat}
+              color={color}
+              transparent
+              opacity={0.3}
+              side={THREE.DoubleSide}
+              depthWrite={false}
+              toneMapped={false}
+            />
+          </mesh>
+        </Billboard>
+      )}
+
+      <sprite scale={node.kind === 'root' ? 7.5 : node.kind === 'core' ? 5.2 : 4}>
         <spriteMaterial
           ref={glowMat}
           map={glowMap}
           color={color}
           transparent
-          opacity={0.4}
+          opacity={0.35}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
         />
       </sprite>
+
+      <Html position={[0, baseSize + 0.55, 0]} center distanceFactor={9} zIndexRange={[20, 0]} occlude={false}>
+        <div
+          ref={labelWrap}
+          data-o="0"
+          style={{
+            opacity: 0,
+            transform: 'translate(-50%,-50%)',
+            whiteSpace: 'nowrap',
+            fontFamily: 'var(--font-mono, monospace)',
+            fontSize: node.kind === 'root' ? 13 : 11,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: node.kind === 'root' ? '#e9eef3' : colorHex,
+            textShadow: '0 1px 12px rgba(0,0,0,0.9)',
+            userSelect: 'none',
+          }}
+        >
+          <span
+            onClick={() => goNode(node.id)}
+            style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          >
+            <span
+              style={{
+                width: 5,
+                height: 5,
+                borderRadius: 9,
+                background: colorHex,
+                boxShadow: `0 0 8px 1px ${colorHex}`,
+              }}
+            />
+            {node.label}
+          </span>
+        </div>
+      </Html>
     </group>
   );
 }

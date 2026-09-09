@@ -8,6 +8,7 @@ import { useHashRoute } from '@/hooks/useHashRoute';
 import { CANVAS_GL, configureRenderer } from '@/lib/three';
 import { useAppStore } from '@/store/useAppStore';
 import { useMapStore } from '@/store/useMapStore';
+import styles from './Map.module.css';
 
 /**
  * El mapa Quivorax: Canvas fijo fullscreen + HUD 2D encima.
@@ -16,6 +17,9 @@ import { useMapStore } from '@/store/useMapStore';
 export function MapPage() {
   const device = useAppStore((s) => s.device);
   const setUserControlled = useMapStore((s) => s.setUserControlled);
+  const mode = useMapStore((s) => s.mode);
+  const branch = useMapStore((s) => s.branch);
+  const node = useMapStore((s) => s.node);
 
   useHashRoute();
   useMapKeys();
@@ -45,6 +49,18 @@ export function MapPage() {
           <MapScene />
         </Suspense>
       </Canvas>
+
+      <div className={styles.grain} aria-hidden />
+      <div className={styles.vignette} aria-hidden />
+      <div className={styles.frame} aria-hidden />
+      <div className={styles.frameB} aria-hidden />
+      <span className={styles.coord} aria-hidden>
+        {mode === 'node' && node
+          ? `NODO · ${node}`
+          : mode === 'branch' && branch
+            ? `RAMA · ${branch}`
+            : 'MAPA · 03 RAMAS · 11 NODOS'}
+      </span>
 
       <Loader />
       <MapOverlay />

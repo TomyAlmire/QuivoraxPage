@@ -1,49 +1,60 @@
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { EDGES, NODE_BY_ID } from '@/data/map';
+import { EDGES, NODE_BY_ID, nodeColor } from '@/data/map';
 import { useMapStore } from '@/store/useMapStore';
 
 /**
- * Aristas del grafo como un único LineSegments (barato). El color/opacidad de
- * cada segmento se actualiza por-vertex según la rama activa.
+ * Aristas del grafo como un único LineSegments (barato). Cada segmento lleva el
+ * color de su rama; la intensidad reacciona a la rama activa / hover.
  */
 export function MapEdges() {
   const geomRef = useRef<THREE.BufferGeometry>(null);
-  const matRef = useRef<THREE.LineBasicMaterial>(null);
 
-  const { positions, edgeMeta } = useMemo(() => {
+  const { positions, baseColors, edgeMeta } = useMemo(() => {
     const positions = new Float32Array(EDGES.length * 6);
+    const baseColors = new Float32Array(EDGES.length * 6);
+    const c = new THREE.Color();
     const edgeMeta = EDGES.map(([a, b], i) => {
       const na = NODE_BY_ID[a];
       const nb = NODE_BY_ID[b];
       positions.set([...na.position, ...nb.position], i * 6);
+      // color = el de la rama del nodo hoja (o el core si va del root)
+      const owner = na.branch ?? nb.branch;
+      c.set(owner ? nodeColor(na.branch ? na : nb) : '#8ea3c8');
+      for (let v = 0; v < 6; v += 3) {
+        baseColors[i * 6 + v] = c.r;
+        baseColors[i * 6 + v + 1] = c.g;
+        baseColors[i * 6 + v + 2] = c.b;
+      }
       return { a: na, b: nb };
     });
-    return { positions, edgeMeta };
+    return { positions, baseColors, edgeMeta };
   }, []);
 
   const colors = useMemo(() => new Float32Array(EDGES.length * 6), []);
+  const intensity = useMemo(() => new Float32Array(EDGES.length), []);
 
   useFrame((_, delta) => {
     const geom = geomRef.current;
     if (!geom) return;
     const { mode, branch, hovered } = useMapStore.getState();
-    const damp = 1 - Math.pow(0.01, delta);
+    const damp = 1 - Math.pow(0.02, delta);
 
     edgeMeta.forEach((e, i) => {
       const touchesBranch =
         e.a.branch === branch || e.b.branch === branch || e.a.kind === 'root' || e.b.kind === 'root';
       const touchesHover = hovered && (e.a.id === hovered || e.b.id === hovered);
 
-      let target = 0.16;
-      if (mode === 'branch') target = touchesBranch ? 0.5 : 0.05;
-      if (mode === 'node') target = touchesHover || e.a.branch === branch ? 0.4 : 0.04;
-      if (touchesHover) target = 0.75;
+      let target = 0.35;
+      if (mode === 'branch') target = touchesBranch ? 1 : 0.1;
+      if (mode === 'node') target = touchesHover || e.a.branch === branch ? 0.85 : 0.08;
+      if (touchesHover) target = 1.4;
 
+      intensity[i] = THREE.MathUtils.lerp(intensity[i], target, damp);
+      const k = intensity[i];
       for (let v = 0; v < 6; v++) {
-        const idx = i * 6 + v;
-        colors[idx] = THREE.MathUtils.lerp(colors[idx] || 0, target, damp);
+        colors[i * 6 + v] = baseColors[i * 6 + v] * k;
       }
     });
 
@@ -59,7 +70,6 @@ export function MapEdges() {
         <bufferAttribute attach="attributes-color" args={[colors, 3]} />
       </bufferGeometry>
       <lineBasicMaterial
-        ref={matRef}
         vertexColors
         transparent
         depthWrite={false}

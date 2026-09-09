@@ -21,3 +21,27 @@ export function glowTexture(): THREE.Texture {
   glow.colorSpace = THREE.SRGBColorSpace;
   return glow;
 }
+
+let bg: THREE.Texture | null = null;
+
+/** Degradé vertical para el fondo de la escena (arriba azulado → abajo casi negro). */
+export function bgGradientTexture(): THREE.Texture {
+  if (bg) return bg;
+  const w = 4;
+  const h = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const g = ctx.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, '#0b1220');
+    g.addColorStop(0.45, '#070b13');
+    g.addColorStop(1, '#03050a');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+  }
+  bg = new THREE.CanvasTexture(canvas);
+  bg.colorSpace = THREE.SRGBColorSpace;
+  return bg;
+}

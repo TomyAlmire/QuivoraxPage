@@ -27,9 +27,27 @@ export function MapOverlay() {
       )}
 
       <div className={s.intro} data-dim={dimIntro || undefined}>
+        <span className={s.introMark}>Q</span>
         <p className={s.introKicker}>Quivorax · el mapa</p>
         <h1 className={s.introTitle}>Tres ramas, un mismo criterio.</h1>
-        <p className={s.introHint}>Elegí una rama abajo · o tocá un nodo</p>
+        <p className={s.introHint}>Elegí una rama · o tocá un nodo</p>
+      </div>
+
+      <div className={s.legend} data-dim={dimIntro || undefined} aria-label="Ramas">
+        {BRANCHES.map((b) => (
+          <button
+            key={b.id}
+            className={s.legendRow}
+            style={{ '--bc': b.color } as CSSProperties}
+            onClick={() => goBranch(b.id)}
+          >
+            <span className={s.legendHead}>
+              {b.label}
+              <span className={s.legendBar} />
+            </span>
+            <span className={s.legendTag}>{b.tagline}</span>
+          </button>
+        ))}
       </div>
 
       <nav className={s.branchNav} aria-label="Ramas">
