@@ -7,10 +7,14 @@ import s from './overlay.module.css';
  * Panel de detalle de un nodo (hoja o contacto). Entra desde la derecha cuando
  * `mode === 'node'`. Para el nodo de contacto muestra el mail.
  */
-export function NodePanel() {
+interface NodePanelProps {
+  heroProgress?: number;
+}
+
+export function NodePanel({ heroProgress = 0 }: NodePanelProps) {
   const { mode, node, goBranch, goMap } = useMapStore();
   const n = node ? NODE_BY_ID[node] : null;
-  const open = mode === 'node' && !!n;
+  const open = mode === 'node' && !!n && heroProgress < 0.6;
   const color = n ? nodeColor(n) : '#fff';
   const isWork = n?.kind === 'work';
   const branchLabel = n?.branch ? BRANCHES.find((b) => b.id === n.branch)?.label : null;

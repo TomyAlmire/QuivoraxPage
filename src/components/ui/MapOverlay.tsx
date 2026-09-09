@@ -5,18 +5,31 @@ import { Minimap } from './Minimap';
 import { Logo } from './Logo';
 import s from './overlay.module.css';
 
+interface MapOverlayProps {
+  /** 0 en el hero → 1 cuando ya scrolleaste; atenúa el HUD. */
+  heroProgress?: number;
+}
+
 /**
  * Todo el HUD 2D del mapa: breadcrumb, botón "volver", selector de ramas,
  * título de intro y minimapa. El panel de detalle es aparte (NodePanel).
  */
-export function MapOverlay() {
+export function MapOverlay({ heroProgress = 0 }: MapOverlayProps) {
   const { mode, branch, goMap, goBranch } = useMapStore();
 
   const dimIntro = mode !== 'map' && mode !== 'intro';
   const back = () => (mode === 'node' && branch ? goBranch(branch) : goMap());
+  const faded = heroProgress > 0.6;
 
   return (
-    <div className={s.hud}>
+    <div
+      className={s.hud}
+      style={{
+        opacity: Math.max(0, 1 - heroProgress * 1.25),
+        pointerEvents: faded ? 'none' : undefined,
+        visibility: heroProgress >= 1 ? 'hidden' : undefined,
+      }}
+    >
       <Breadcrumb />
 
       {mode !== 'intro' && mode !== 'map' && (
@@ -31,6 +44,11 @@ export function MapOverlay() {
         <h1 className={s.introTitle}>Tres ramas, un mismo criterio.</h1>
         <p className={s.introHint}>Elegí una rama · o tocá un nodo</p>
       </div>
+
+      <a className={s.scrollCue} href="#quivorax" data-dim={dimIntro || undefined}>
+        <span>conocé más</span>
+        <span className={s.scrollCueArrow}>↓</span>
+      </a>
 
       <div className={s.legend} data-dim={dimIntro || undefined} aria-label="Ramas">
         {BRANCHES.map((b) => (
