@@ -1,0 +1,69 @@
+import { lazy, Suspense } from 'react';
+import { Environment, Lightformer } from '@react-three/drei';
+import { MapNodes } from '@/components/3d/MapNodes';
+import { MapEdges } from '@/components/3d/MapEdges';
+import { MapCamera } from '@/components/3d/MapCamera';
+import { Particles } from '@/components/3d/Particles';
+import { Effects } from '@/components/3d/Effects';
+import { SceneReady } from '@/components/3d/SceneReady';
+import { useAppStore } from '@/store/useAppStore';
+import { useMapStore } from '@/store/useMapStore';
+
+const DebugPerf = import.meta.env.DEV
+  ? lazy(() => import('@/components/ui/Debug').then((m) => ({ default: m.DebugPerf })))
+  : () => null;
+
+/** Plano invisible detrás de todo: click en el vacío = un nivel hacia atrás. */
+function Backdrop() {
+  const goMap = useMapStore((s) => s.goMap);
+  const goBranch = useMapStore((s) => s.goBranch);
+  return (
+    <mesh
+      position={[0, 0, -6]}
+      onClick={(e) => {
+        e.stopPropagation();
+        const { mode, branch } = useMapStore.getState();
+        if (mode === 'node' && branch) goBranch(branch);
+        else goMap();
+      }}
+    >
+      <planeGeometry args={[120, 120]} />
+      <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+    </mesh>
+  );
+}
+
+export function MapScene() {
+  const tier = useAppStore((s) => s.quality());
+
+  return (
+    <>
+      <color attach="background" args={['#04060a']} />
+      <fog attach="fog" args={['#04060a', 12, 34]} />
+
+      <MapCamera />
+
+      <ambientLight intensity={0.25} />
+      <Environment resolution={tier === 'low' ? 96 : 192}>
+        <Lightformer form="rect" intensity={0.9} position={[0, 4, -6]} scale={[12, 6, 1]} color="#9fb8ff" />
+        <Lightformer form="circle" intensity={1.2} position={[5, -2, 4]} scale={5} color="#3ddc84" />
+        <Lightformer form="circle" intensity={1} position={[-5, 1, 3]} scale={5} color="#b39dff" />
+      </Environment>
+
+      <Suspense fallback={null}>
+        <Backdrop />
+        <MapEdges />
+        <MapNodes />
+        <SceneReady />
+      </Suspense>
+
+      <Particles radius={16} color="#7d93c8" density={tier === 'low' ? 0.25 : 0.55} />
+
+      <Effects bloom vignette chromaticAberration bloomIntensity={1.15} />
+
+      <Suspense fallback={null}>
+        <DebugPerf />
+      </Suspense>
+    </>
+  );
+}

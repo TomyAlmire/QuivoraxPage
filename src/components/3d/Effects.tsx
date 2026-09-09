@@ -1,0 +1,116 @@
+import { useMemo, type ReactElement } from 'react';
+import {
+  EffectComposer,
+  Bloom,
+  Vignette,
+  ChromaticAberration,
+  Noise,
+  DepthOfField,
+  BrightnessContrast,
+  HueSaturation,
+} from '@react-three/postprocessing';
+import { BlendFunction } from 'postprocessing';
+import * as THREE from 'three';
+import { useAppStore } from '@/store/useAppStore';
+
+/**
+ * Wrapper de postprocessing.
+ *
+ * Sistema PREPARADO, no encendido entero: activá cada efecto por prop.
+ * En 'low' se atenúa Bloom y se desactiva DoF. Otros efectos disponibles en
+ * @react-three/postprocessing y NO incluidos acá por defecto (agregar cuando
+ * haga falta): Glitch, GodRays, SSAO, Scanline, Pixelation, DotScreen, Outline,
+ * ToneMapping, Sepia, TiltShift, Autofocus.
+ */
+export interface EffectsProps {
+  bloom?: boolean;
+  vignette?: boolean;
+  chromaticAberration?: boolean;
+  noise?: boolean;
+  depthOfField?: boolean;
+  /** Color grading: contraste/brillo + saturación/tono */
+  colorGrade?: boolean;
+  bloomIntensity?: number;
+}
+
+export function Effects({
+  bloom = true,
+  vignette = true,
+  chromaticAberration = false,
+  noise = false,
+  depthOfField = false,
+  colorGrade = false,
+  bloomIntensity = 0.8,
+}: EffectsProps) {
+  const tier = useAppStore((s) => s.quality());
+  const heavyOk = useAppStore((s) => s.device.heavyPostFX);
+  const reduced = useAppStore((s) => s.device.prefersReducedMotion);
+
+  const caOffset = useMemo(() => new THREE.Vector2(0.0006, 0.0006), []);
+
+  const useDof = depthOfField && heavyOk;
+  const bloomStrength = tier === 'low' ? bloomIntensity * 0.4 : bloomIntensity;
+
+  const passes = useMemo<ReactElement[]>(() => {
+    if (reduced) return [];
+    const list: ReactElement[] = [];
+
+    if (bloom) {
+      list.push(
+        <Bloom
+          key="bloom"
+          intensity={bloomStrength}
+          luminanceThreshold={0.72}
+          luminanceSmoothing={0.25}
+          mipmapBlur
+        />,
+      );
+    }
+    if (useDof) {
+      list.push(
+        <DepthOfField key="dof" focusDistance={0.015} focalLength={0.05} bokehScale={3} />,
+      );
+    }
+    if (chromaticAberration) {
+      list.push(
+        <ChromaticAberration
+          key="ca"
+          offset={caOffset}
+          radialModulation={false}
+          modulationOffset={0}
+        />,
+      );
+    }
+    if (colorGrade) {
+      list.push(<BrightnessContrast key="bc" brightness={0} contrast={0.08} />);
+      list.push(<HueSaturation key="hs" hue={0} saturation={0.12} />);
+    }
+    if (noise) {
+      list.push(
+        <Noise key="noise" premultiply blendFunction={BlendFunction.SOFT_LIGHT} opacity={0.35} />,
+      );
+    }
+    if (vignette) {
+      list.push(<Vignette key="vig" eskil={false} offset={0.28} darkness={0.72} />);
+    }
+    return list;
+  }, [
+    reduced,
+    bloom,
+    bloomStrength,
+    useDof,
+    chromaticAberration,
+    caOffset,
+    colorGrade,
+    noise,
+    vignette,
+  ]);
+
+  if (passes.length === 0) return null;
+
+  return (
+    <EffectComposer multisampling={tier === 'high' ? 4 : 0} enableNormalPass={useDof}>
+      {passes}
+    </EffectComposer>
+  );
+}

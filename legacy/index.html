@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Quivorax — Desarrollo web, sistemas y ciberseguridad</title>
+  <meta name="description" content="Quivorax: diseño y construyo sitios y sistemas, y me aseguro de que resistan. Desarrollo web, infraestructura y seguridad ofensiva y defensiva." />
+  <meta name="theme-color" content="#07090c" />
+
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body class="is-loading">
+
+  <!-- ================= GRAIN + CANVAS BACKDROP ================= -->
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- ================= PRELOADER ================= -->
+  <div class="loader" id="loader" aria-hidden="true">
+    <div class="loader__inner">
+      <div class="loader__word" data-loader-word>
+        <span>Q</span><span>U</span><span>I</span><span>V</span><span>O</span><span>R</span><span>A</span><span>X</span>
+      </div>
+      <div class="loader__meta">
+        <span data-loader-status>inicializando entorno seguro</span>
+        <span class="loader__count"><em data-loader-count>0</em>%</span>
+      </div>
+      <div class="loader__bar"><i data-loader-bar></i></div>
+    </div>
+  </div>
+
+  <!-- ================= CUSTOM CURSOR ================= -->
+  <div class="cursor" id="cursor" aria-hidden="true">
+    <div class="cursor__dot"></div>
+    <div class="cursor__ring"></div>
+    <div class="cursor__label" data-cursor-label></div>
+  </div>
+
+  <!-- ================= NAV ================= -->
+  <header class="nav" id="nav">
+    <a class="nav__brand" href="#top" data-magnetic data-cursor="Inicio">
+      <span class="nav__mark">Q</span>
+      <span class="nav__name">Quivorax</span>
+    </a>
+    <nav class="nav__links" id="nav-links" aria-label="Principal">
+      <a href="#enfoque" data-magnetic><span>Enfoque</span></a>
+      <a href="#capacidades" data-magnetic><span>Capacidades</span></a>
+      <a href="#trabajo" data-magnetic><span>Trabajo</span></a>
+      <a href="#stack" data-magnetic><span>Stack</span></a>
+      <a href="#contacto" data-magnetic><span>Contacto</span></a>
+    </nav>
+    <a href="#contacto" class="nav__cta" data-magnetic data-cursor="Escribir">
+      <span>Hablemos</span>
+      <i></i>
+    </a>
+    <button class="nav__toggle" id="nav-toggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav-links">
+      <span></span><span></span>
+    </button>
+  </header>
+
+  <main id="top">
+
+    <!-- ================= HERO ================= -->
+    <section class="hero" id="hero" data-scene="hero">
+      <div class="hero__grid">
+
+        <div class="hero__eyebrow" data-depth="0.06" data-reveal="fade">
+          <span class="dot"></span>
+          Ciberseguridad · desarrollo web · sistemas
+        </div>
+
+        <h1 class="hero__title" data-depth="0.14">
+          <span class="line"><span class="w" data-w>Sitios,</span> <span class="w" data-w>sistemas</span></span>
+          <span class="line line--shift"><span class="w" data-w>y</span> <span class="w" data-w>seguridad</span></span>
+          <span class="line"><span class="w w--accent" data-w>que</span> <span class="w w--accent" data-w>resisten.</span></span>
+        </h1>
+
+        <p class="hero__lead" data-depth="0.1" data-reveal="lines">
+          Diseño y construyo sitios, aplicaciones y la infraestructura que los
+          sostiene — y los pruebo como lo haría un atacante, para que aguanten
+          en producción y no solo en la demo.
+        </p>
+
+        <div class="hero__actions" data-depth="0.08" data-reveal="fade">
+          <a href="#trabajo" class="btn btn--solid" data-magnetic data-cursor="Ver">
+            <span>Ver trabajo</span>
+          </a>
+          <a href="#enfoque" class="btn btn--ghost" data-magnetic>
+            <span>Nuestro enfoque</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- floating disruptor elements -->
+      <div class="hero__float hero__float--a mono" data-depth="0.28" data-float>
+        -34.60 / -58.38 · BA
+      </div>
+      <div class="hero__float hero__float--b mono" data-depth="0.4" data-float>
+        <span class="pulse"></span> sistemas · operativos
+      </div>
+      <div class="hero__float hero__float--c" data-depth="0.2" data-float>
+        <em>dev</em>
+        <span>· sec · ops</span>
+      </div>
+      <div class="hero__float hero__float--d mono" data-depth="0.34" data-float>
+        [ 07 : 21 : 44 ] build ok
+      </div>
+
+      <div class="hero__scroll mono" data-reveal="fade">
+        <span>Desplazá para explorar</span>
+        <i></i>
+      </div>
+
+      <div class="hero__ghost" aria-hidden="true" data-ghost>SECURE</div>
+    </section>
+
+    <!-- ================= MANIFESTO ================= -->
+    <section class="manifesto" id="enfoque" data-scene="manifesto">
+      <p class="manifesto__kicker mono" data-reveal="fade">01 — Enfoque</p>
+      <h2 class="manifesto__text" data-reveal="lines-scrub">
+        Todo proyecto es un sistema: hay que diseñarlo bien, entenderlo entero y
+        <span class="accent">defenderlo</span> antes de que alguien más lo intente.
+      </h2>
+      <div class="manifesto__aside mono" data-depth="0.2" data-float>
+        <span>// construir con criterio</span>
+        <span>// verificar todo</span>
+      </div>
+      <div class="manifesto__drift" aria-hidden="true" data-drift>CÓDIGO · SISTEMAS · SEGURIDAD · CÓDIGO · SISTEMAS · SEGURIDAD ·</div>
+    </section>
+
+    <!-- ================= CAPABILITIES ================= -->
+    <section class="caps" id="capacidades" data-scene="caps">
+      <div class="caps__head">
+        <p class="mono" data-reveal="fade">02 — Capacidades</p>
+        <h2 data-reveal="lines-scrub">Tres frentes, un mismo criterio: que funcione y no falle.</h2>
+      </div>
+
+      <div class="caps__list caps__list--3">
+        <article class="cap" data-cap data-offset="up" data-cursor="01">
+          <span class="cap__idx mono">01</span>
+          <div class="cap__media" data-cap-media><span class="cap__glyph">&lt;/&gt;</span></div>
+          <h3 class="cap__title">Desarrollo web</h3>
+          <p class="cap__body">Una web tiene que hacer más que verse bien.</p>
+          <ul class="cap__points">
+            <li><b>Diseño UX/UI.</b> Experiencias claras, simples y fáciles de usar.</li>
+            <li><b>Frontend.</b> Interfaces rápidas, prolijas y adaptadas a cada pantalla.</li>
+            <li><b>Backend.</b> Que la parte técnica funcione, conecte y responda.</li>
+          </ul>
+        </article>
+
+        <article class="cap" data-cap data-offset="down" data-cursor="02">
+          <span class="cap__idx mono">02</span>
+          <div class="cap__media" data-cap-media><span class="cap__glyph">▤</span></div>
+          <h3 class="cap__title">Sistemas</h3>
+          <p class="cap__body">Menos pasos, más eficiencia.</p>
+          <ul class="cap__points">
+            <li><b>Ordenar procesos.</b> Una forma más clara y simple de trabajar.</li>
+            <li><b>Conectar herramientas.</b> Que distintos sistemas se entiendan entre sí.</li>
+            <li><b>Automatizar tareas.</b> Menos pasos manuales, menos errores.</li>
+          </ul>
+        </article>
+
+        <article class="cap" data-cap data-offset="up-sm" data-cursor="03">
+          <span class="cap__idx mono">03</span>
+          <div class="cap__media" data-cap-media><span class="cap__glyph">⌘</span></div>
+          <h3 class="cap__title">Ciberseguridad</h3>
+          <p class="cap__body">Una sola barrera no alcanza.</p>
+          <ul class="cap__points">
+            <li><b>Revisar accesos.</b> Cómo están protegidas tus cuentas, sistemas y herramientas.</li>
+            <li><b>Detectar riesgos.</b> Encontrar los puntos débiles antes de que sean un problema.</li>
+            <li><b>Proponer mejoras.</b> Reforzar la seguridad de forma clara y concreta.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <!-- ================= WORK (horizontal) ================= -->
+    <section class="work" id="trabajo" data-scene="work">
+      <div class="work__intro">
+        <p class="mono" data-reveal="fade">03 — Trabajo</p>
+        <h2 data-reveal="lines-scrub">Sitios que diseñé y construí.</h2>
+        <p class="work__note mono">Diseño · desarrollo · puesta en línea</p>
+      </div>
+
+      <div class="work__track" data-work-track>
+        <article class="proj proj--wide" data-proj data-cursor="Ver">
+          <div class="proj__media">
+            <img class="proj__img" data-proj-img src="/assets/work-lashes.png" alt="Sitio de Lash Studio by Miri" decoding="async" width="1280" height="800" />
+            <span class="proj__index mono">/01</span>
+          </div>
+          <div class="proj__meta">
+            <h3 class="proj__title"><span data-w>Lash Studio by Miri</span></h3>
+            <p class="proj__cat mono">Estudio de pestañas · sitio multipágina + reservas</p>
+          </div>
+        </article>
+
+        <article class="proj proj--wide proj--lift" data-proj data-cursor="Ver">
+          <div class="proj__media">
+            <img class="proj__img" data-proj-img src="/assets/work-claricolor.png" alt="Sitio de Clari Color" decoding="async" width="1280" height="800" />
+            <span class="proj__index mono">/02</span>
+          </div>
+          <div class="proj__meta">
+            <h3 class="proj__title"><span data-w>Clari Color</span></h3>
+            <p class="proj__cat mono">Peluquería, coaching &amp; tarot · identidad + multipágina</p>
+          </div>
+        </article>
+
+        <article class="proj proj--wide" data-proj data-cursor="Ver">
+          <div class="proj__media">
+            <img class="proj__img" data-proj-img src="/assets/work-espacioromero.png" alt="Sitio de Espacio Romero" decoding="async" width="1280" height="800" />
+            <span class="proj__index mono">/03</span>
+          </div>
+          <div class="proj__meta">
+            <h3 class="proj__title"><span data-w>Espacio Romero</span></h3>
+            <p class="proj__cat mono">Arte y alojamiento · landing + tienda</p>
+          </div>
+        </article>
+
+        <article class="proj proj--wide proj--lift" data-proj data-cursor="Ver">
+          <div class="proj__media">
+            <img class="proj__img" data-proj-img src="/assets/work-dalmata.png" alt="Sitio de Dálmata Custom Wear" decoding="async" width="1280" height="800" />
+            <span class="proj__index mono">/04</span>
+          </div>
+          <div class="proj__meta">
+            <h3 class="proj__title"><span data-w>Dálmata Custom Wear</span></h3>
+            <p class="proj__cat mono">Indumentaria custom · e-commerce + editor 3D</p>
+          </div>
+        </article>
+
+        <article class="proj proj--end" data-proj data-cursor="Escribir">
+          <div class="proj__cta">
+            <h3>¿Tu proyecto<br />es el próximo?</h3>
+            <a href="#contacto" class="btn btn--solid" data-magnetic><span>Hablemos</span></a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ================= APPROACH ================= -->
+    <section class="approach" data-scene="approach">
+      <div class="approach__head">
+        <p class="mono" data-reveal="fade">04 — Método</p>
+        <h2 data-reveal="lines-scrub">De la idea a producción,<br />sin sorpresas.</h2>
+      </div>
+      <ol class="approach__steps">
+        <li class="step" data-step>
+          <span class="step__n mono">01</span>
+          <h3>Entender</h3>
+          <p>Relevo objetivo, contexto, activos y riesgos. Qué se construye, para quién y qué no puede fallar.</p>
+        </li>
+        <li class="step" data-step>
+          <span class="step__n mono">02</span>
+          <h3>Construir</h3>
+          <p>Desarrollo iterativo, con foco en simplicidad y con la seguridad puesta desde el diseño, no como parche.</p>
+        </li>
+        <li class="step" data-step>
+          <span class="step__n mono">03</span>
+          <h3>Endurecer</h3>
+          <p>Pruebas, revisión y ajuste: rendimiento, accesibilidad y superficie de ataque. Rompo lo que hice para que aguante.</p>
+        </li>
+        <li class="step" data-step>
+          <span class="step__n mono">04</span>
+          <h3>Operar</h3>
+          <p>Despliegue, monitoreo y acompañamiento. Queda todo documentado, observable y fácil de retomar.</p>
+        </li>
+      </ol>
+      <div class="approach__line" aria-hidden="true"><i data-approach-line></i></div>
+      <div class="approach__shape" aria-hidden="true" data-approach-shape></div>
+    </section>
+
+    <!-- ================= STACK ================= -->
+    <section class="stack" id="stack" data-scene="stack">
+      <div class="stack__head">
+        <p class="mono" data-reveal="fade">05 — Stack</p>
+        <h2 data-reveal="lines-scrub">Con qué lo construyo.</h2>
+        <p class="stack__note mono">Interfaz · Sistemas · Seguridad</p>
+      </div>
+      <ul class="stack__list" data-stack-list>
+        <li class="stack__row" data-stack><span class="stack__n mono">01</span><span class="stack__name">Desarrollo front-end</span><span class="stack__cat mono">Interfaz</span></li>
+        <li class="stack__row" data-stack><span class="stack__n mono">02</span><span class="stack__name">Diseño de interfaces</span><span class="stack__cat mono">Interfaz</span></li>
+        <li class="stack__row" data-stack><span class="stack__n mono">03</span><span class="stack__name">WebGL / GLSL</span><span class="stack__cat mono">Interfaz</span></li>
+        <li class="stack__row" data-stack><span class="stack__n mono">04</span><span class="stack__name">Three.js / React Three Fiber</span><span class="stack__cat mono">Interfaz</span></li>
+        <li class="stack__row" data-stack><span class="stack__n mono">05</span><span class="stack__name">GSAP + ScrollTrigger</span><span class="stack__cat mono">Interfaz</span></li>
+        <li class="stack__row" data-stack><span class="stack__n mono">06</span><span class="stack__name">Framer Motion</span><span class="stack__cat mono">Interfaz</span></li>
+        <li class="stack__row" data-stack><span class="stack__n mono">07</span><span class="stack__name">APIs y back-end</span><span class="stack__cat mono">Sistemas</span></li>
+        <li class="stack__row" data-stack><span class="stack__n mono">08</span><span class="stack__name">Automatización de procesos</span><span class="stack__cat mono">Sistemas</span></li>
+        <li class="stack__row" data-stack><span class="stack__n mono">09</span><span class="stack__name">Integración de herramientas</span><span class="stack__cat mono">Sistemas</span></li>
+        <li class="stack__row" data-stack><span class="stack__n mono">10</span><span class="stack__name">Linux y servidores</span><span class="stack__cat mono">Sistemas</span></li>
+        <li class="stack__row" data-stack><span class="stack__n mono">11</span><span class="stack__name">Despliegue y monitoreo</span><span class="stack__cat mono">Sistemas</span></li>
+        <li class="stack__row" data-stack><span class="stack__n mono">12</span><span class="stack__name">Revisión de accesos</span><span class="stack__cat mono">Seguridad</span></li>
+        <li class="stack__row" data-stack><span class="stack__n mono">13</span><span class="stack__name">Detección de riesgos</span><span class="stack__cat mono">Seguridad</span></li>
+        <li class="stack__row" data-stack><span class="stack__n mono">14</span><span class="stack__name">Endurecimiento (hardening)</span><span class="stack__cat mono">Seguridad</span></li>
+        <li class="stack__row" data-stack><span class="stack__n mono">15</span><span class="stack__name">Acompañamiento y mejoras</span><span class="stack__cat mono">Seguridad</span></li>
+      </ul>
+      <div class="stack__ghost" aria-hidden="true">WEBGL · THREE.JS · R3F · GSAP · WEBGL · THREE.JS · R3F · GSAP ·</div>
+    </section>
+
+    <!-- ================= CTA ================= -->
+    <section class="cta" id="contacto" data-scene="cta">
+      <p class="cta__kicker mono" data-reveal="fade">06 — Contacto</p>
+      <h2 class="cta__title" data-reveal="lines-scrub">
+        <span class="line">¿Tenés algo que</span>
+        <span class="line line--shift">construir o <span class="accent">blindar</span>?</span>
+      </h2>
+      <a href="mailto:hola@quivorax.com" class="cta__btn" data-magnetic data-cursor="Enviar">
+        <span class="cta__btn-label">Iniciá una conversación</span>
+        <span class="cta__btn-fill"></span>
+      </a>
+      <p class="cta__sub mono" data-reveal="fade">Respondo en menos de 24 h · hola@quivorax.com</p>
+    </section>
+  </main>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="footer" data-scene="footer">
+    <div class="footer__marquee" aria-hidden="true">
+      <div data-marquee>
+        <span>Desarrollo web</span><span>·</span><span>Interfaces</span><span>·</span><span>Sistemas</span><span>·</span><span>Automatización</span><span>·</span><span>Ciberseguridad</span><span>·</span><span>WebGL</span><span>·</span>
+        <span>Desarrollo web</span><span>·</span><span>Interfaces</span><span>·</span><span>Sistemas</span><span>·</span><span>Automatización</span><span>·</span><span>Ciberseguridad</span><span>·</span><span>WebGL</span><span>·</span>
+      </div>
+    </div>
+
+    <div class="footer__wordmark" data-footer-word>QUIVORAX</div>
+
+    <div class="footer__grid">
+      <div class="footer__col">
+        <span class="mono">Contacto</span>
+        <a href="mailto:hola@quivorax.com" data-magnetic>hola@quivorax.com</a>
+        <a href="https://wa.me/5491100000000" data-magnetic>WhatsApp</a>
+      </div>
+      <div class="footer__col">
+        <span class="mono">Red</span>
+        <a href="#" data-magnetic>GitHub</a>
+        <a href="#" data-magnetic>LinkedIn</a>
+        <a href="#" data-magnetic>Instagram</a>
+      </div>
+      <div class="footer__col">
+        <span class="mono">Base</span>
+        <p>Buenos Aires · remoto<br />-34.60 / -58.38</p>
+      </div>
+      <div class="footer__col footer__col--end">
+        <span class="mono" data-clock>00:00:00</span>
+        <a href="#top" class="footer__top" data-magnetic data-cursor="Arriba">Volver arriba ↑</a>
+      </div>
+    </div>
+
+    <div class="footer__base mono">
+      <span>© <span data-year>2026</span> Quivorax</span>
+      <span>Hecho con criterio (y algo de paranoia)</span>
+    </div>
+  </footer>
+
+  <!-- ================= SCRIPTS ================= -->
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>

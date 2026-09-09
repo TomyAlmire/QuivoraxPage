@@ -1,0 +1,27 @@
+node_modules
+dist
+dist-ssr
+*.local
+.DS_Store
+.vite
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# TS build info
+node_modules/.tmp
+
+# Previews autogenerados
+Claude outputs/
+
+# Assets pesados generados localmente (dejar solo el .gitkeep)
+# src/assets/models/*.glb
+# src/assets/environments/*.hdr
