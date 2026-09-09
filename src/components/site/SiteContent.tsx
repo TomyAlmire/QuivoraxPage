@@ -1,12 +1,30 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
 import { BRANCHES, type BranchId } from '@/data/map';
 import { WORKS } from '@/data/works';
 import { useMapStore } from '@/store/useMapStore';
+import { usePageScroll } from '@/hooks/usePageScroll';
+import { useLenis } from '@/components/layout/SmoothScroll';
 import { Logo } from '@/components/ui/Logo';
+import { WHATSAPP_URL, WHATSAPP_DISPLAY, EMAIL, EMAIL_URL } from '@/lib/contact';
 import s from './site.module.css';
 
-/** Aparece con un pequeño desplazamiento al entrar en viewport (one-shot). */
-function Reveal({ children, className }: { children: ReactNode; className?: string }) {
+/** Ícono de WhatsApp (glifo oficial simplificado). */
+function WaIcon() {
+  return (
+    <svg viewBox="0 0 32 32" aria-hidden focusable="false">
+      <path d="M16 3C9.4 3 4 8.4 4 15c0 2.1.6 4.2 1.6 6L4 29l8.2-1.6c1.7.9 3.7 1.4 5.8 1.4 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 21.8c-1.8 0-3.5-.5-5-1.4l-.4-.2-4.9 1 1-4.8-.3-.4c-1-1.6-1.5-3.4-1.5-5.3C4.4 9.6 9.6 4.4 16 4.4S27.6 9.6 27.6 16 22.4 24.8 16 24.8zm6.5-8.3c-.4-.2-2.1-1-2.4-1.1-.3-.1-.6-.2-.8.2s-.9 1.1-1.1 1.4c-.2.2-.4.3-.8.1-.4-.2-1.5-.6-2.9-1.8-1.1-1-1.8-2.2-2-2.6-.2-.4 0-.6.2-.8l.6-.7c.2-.2.2-.4.4-.6.1-.2.1-.5 0-.7-.1-.2-.8-2-1.1-2.7-.3-.7-.6-.6-.8-.6h-.7c-.2 0-.6.1-.9.5-.3.4-1.2 1.2-1.2 2.9s1.2 3.4 1.4 3.6c.2.2 2.5 3.8 6 5.3.8.4 1.5.6 2 .8.8.3 1.6.2 2.2.1.7-.1 2.1-.9 2.4-1.7.3-.8.3-1.6.2-1.7-.1-.2-.4-.3-.8-.5z" />
+    </svg>
+  );
+}
+
+/** Aparece con desplazamiento al entrar en viewport (one-shot). */
+function Reveal({ children }: { children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   const [seen, setSeen] = useState(false);
 
@@ -28,8 +46,6 @@ function Reveal({ children, className }: { children: ReactNode; className?: stri
       { rootMargin: '0px 0px -12% 0px' },
     );
     io.observe(el);
-    // failsafe: si el observer no reporta (entornos raros) pero el bloque ya
-    // está a la vista, revelarlo igual.
     const failsafe = window.setInterval(() => {
       const r = ref.current?.getBoundingClientRect();
       if (r && r.top < window.innerHeight * 1.05) {
@@ -44,13 +60,56 @@ function Reveal({ children, className }: { children: ReactNode; className?: stri
   }, []);
 
   return (
-    <div ref={ref} className={`${s.reveal}${className ? ` ${className}` : ''}`} data-inview={seen || undefined}>
+    <div ref={ref} className={s.reveal} data-inview={seen || undefined}>
       {children}
     </div>
   );
 }
 
-/** Sub-servicios de cada rama (los mismos de los slides de Tomás). */
+/** Parallax vertical sutil de una captura, mientras está a la vista. */
+function WorkShot({ src, alt }: { src: string; alt: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+
+    let raf = 0;
+    let visible = false;
+    const tick = () => {
+      const box = el.parentElement?.getBoundingClientRect();
+      if (box) {
+        const center = box.top + box.height / 2;
+        const off = (center - window.innerHeight / 2) / window.innerHeight; // ~-1..1
+        el.style.transform = `translate3d(0, ${(-off * 6).toFixed(2)}%, 0)`;
+      }
+      if (visible) raf = requestAnimationFrame(tick);
+    };
+    const io = new IntersectionObserver(([e]) => {
+      visible = e.isIntersecting;
+      if (visible && !raf) raf = requestAnimationFrame(tick);
+      if (!visible) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      }
+    });
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  return (
+    <div className={s.workShot}>
+      <div ref={ref} className={s.workPara}>
+        <img src={src} alt={alt} loading="lazy" />
+      </div>
+    </div>
+  );
+}
+
 const POINTS: Record<BranchId, string[]> = {
   sistemas: ['Ordenar procesos', 'Conectar herramientas', 'Automatizar tareas'],
   web: ['Diseño UX/UI', 'Frontend', 'Backend'],
@@ -58,36 +117,47 @@ const POINTS: Record<BranchId, string[]> = {
 };
 
 const STEPS = [
-  {
-    n: '01',
-    t: 'Charlamos',
-    d: 'Me contás qué necesitás. Te digo qué se puede hacer, en cuánto tiempo y qué conviene primero.',
-  },
-  {
-    n: '02',
-    t: 'Manos a la obra',
-    d: 'Trabajo en tramos cortos y te muestro avances. Nada de desaparecer un mes y volver con una sorpresa.',
-  },
-  {
-    n: '03',
-    t: 'Queda tuyo',
-    d: 'Te entrego todo funcionando y documentado, para que no dependas de mí para seguir.',
-  },
+  { n: '01', t: 'Charlamos', d: 'Me escribís por WhatsApp y me contás qué necesitás. Te digo qué se puede hacer, en cuánto y qué conviene primero.' },
+  { n: '02', t: 'Manos a la obra', d: 'Trabajo en tramos cortos y te muestro avances. Nada de desaparecer un mes y volver con una sorpresa.' },
+  { n: '03', t: 'Queda tuyo', d: 'Te entrego todo funcionando y documentado, para que no dependas de mí para seguir.' },
 ];
 
-function jumpToBranch(id: BranchId) {
-  useMapStore.getState().goBranch(id);
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+export function SiteContent({ heroProgress = 0 }: { heroProgress?: number }) {
+  const lenis = useLenis();
+  const { progress, past } = usePageScroll();
 
-export function SiteContent() {
+  // el panel "sube y encastra" mientras salís del hero (solo translate = barato)
+  const rise = Math.min(1, heroProgress * 1.35);
+  const mainStyle: CSSProperties = { transform: `translateY(${((1 - rise) * 46).toFixed(1)}px)` };
+
+  const toTop = () => {
+    if (lenis) lenis.scrollTo(0, { duration: 1.1 });
+    else window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  const jumpToBranch = (id: BranchId) => {
+    useMapStore.getState().goBranch(id);
+    toTop();
+  };
+
   return (
     <div className={s.root}>
-      {/* el hero 3D vive detrás; este bloque deja pasar los clicks al canvas */}
+      <div className={s.progress} data-on={progress > 0.01 || undefined} style={{ '--sp': progress } as CSSProperties} />
+
+      <a
+        className={s.fab}
+        data-on={past || undefined}
+        href={WHATSAPP_URL}
+        target="_blank"
+        rel="noreferrer"
+        aria-label="Escribime por WhatsApp"
+      >
+        <WaIcon />
+        <span className={s.fabText}>Escribime</span>
+      </a>
+
       <div className={s.heroSpace} aria-hidden />
 
-      <main className={s.main}>
-        {/* ---- 01 · manifiesto ---- */}
+      <main className={s.main} style={mainStyle}>
         <section className={s.section} id="quivorax">
           <Reveal>
             <p className={s.eyebrow}>
@@ -102,7 +172,6 @@ export function SiteContent() {
           </Reveal>
         </section>
 
-        {/* ---- 02 · qué hago ---- */}
         <section className={s.section} id="que-hago">
           <Reveal>
             <p className={s.eyebrow}>
@@ -129,7 +198,6 @@ export function SiteContent() {
           </Reveal>
         </section>
 
-        {/* ---- 03 · trabajos ---- */}
         <section className={s.section} id="trabajos">
           <Reveal>
             <p className={s.eyebrow}>
@@ -139,9 +207,7 @@ export function SiteContent() {
             <div className={s.grid2}>
               {WORKS.map((w) => (
                 <article key={w.id} className={s.work} style={{ '--c': w.accent } as CSSProperties}>
-                  <div className={s.workShot}>
-                    <img src={w.shot} alt={`Sitio de ${w.name}`} loading="lazy" />
-                  </div>
+                  <WorkShot src={w.shot} alt={`Sitio de ${w.name}`} />
                   <div className={s.workBody}>
                     <p className={s.workKind}>{w.kind}</p>
                     <h3 className={s.workName}>{w.name}</h3>
@@ -160,7 +226,6 @@ export function SiteContent() {
           </Reveal>
         </section>
 
-        {/* ---- 04 · cómo trabajo ---- */}
         <section className={s.section} id="como-trabajo">
           <Reveal>
             <p className={s.eyebrow}>
@@ -179,17 +244,27 @@ export function SiteContent() {
           </Reveal>
         </section>
 
-        {/* ---- 05 · contacto ---- */}
         <section className={`${s.section} ${s.contact}`} id="contacto">
           <Reveal>
             <p className={s.eyebrow}>
               <span>05</span> Trabajemos
             </p>
             <h2 className={s.lead}>¿Tenés algo que construir o blindar?</h2>
-            <p className={s.leadBody}>Contame qué necesitás y lo vemos. Respondo en menos de 24 h.</p>
-            <a className={s.mail} href="mailto:hola@quivorax.com">
-              hola@quivorax.com
-            </a>
+            <p className={s.leadBody}>
+              Escribime por WhatsApp y lo vemos. Te respondo yo, en el día.
+            </p>
+            <div>
+              <a className={s.wa} href={WHATSAPP_URL} target="_blank" rel="noreferrer">
+                <WaIcon />
+                Escribime por WhatsApp
+              </a>
+              <span className={s.waNote}>
+                {WHATSAPP_DISPLAY} · o por mail a{' '}
+                <a className={s.mail} href={EMAIL_URL}>
+                  {EMAIL}
+                </a>
+              </span>
+            </div>
           </Reveal>
         </section>
 

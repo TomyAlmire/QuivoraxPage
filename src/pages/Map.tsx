@@ -5,6 +5,7 @@ import { Loader } from '@/components/ui/Loader';
 import { MapOverlay, useMapKeys } from '@/components/ui/MapOverlay';
 import { NodePanel } from '@/components/ui/NodePanel';
 import { SiteContent } from '@/components/site/SiteContent';
+import { SmoothScroll } from '@/components/layout/SmoothScroll';
 import { NODES } from '@/data/map';
 import { useHashRoute } from '@/hooks/useHashRoute';
 import { useHeroProgress } from '@/hooks/useHeroProgress';
@@ -48,7 +49,7 @@ export function MapPage() {
   }, [setUserControlled]);
 
   return (
-    <>
+    <SmoothScroll>
       <Canvas
         style={{
           position: 'fixed',
@@ -100,7 +101,7 @@ export function MapPage() {
       <Loader />
       <MapOverlay heroProgress={hero} />
       <NodePanel heroProgress={hero} />
-      <SiteContent />
-    </>
+      <SiteContent heroProgress={hero} />
+    </SmoothScroll>
   );
 }

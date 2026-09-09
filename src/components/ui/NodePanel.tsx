@@ -1,6 +1,7 @@
 import { type CSSProperties } from 'react';
 import { useMapStore } from '@/store/useMapStore';
 import { NODE_BY_ID, BRANCHES, nodeColor } from '@/data/map';
+import { WHATSAPP_URL, WHATSAPP_DISPLAY } from '@/lib/contact';
 import s from './overlay.module.css';
 
 /**
@@ -50,24 +51,14 @@ export function NodePanel({ heroProgress = 0 }: NodePanelProps) {
           <h2 className={s.panelTitle}>{n.title}</h2>
           <p className={s.panelBody}>
             {n.kind === 'contact' ? (
-              <>
-                Contame qué necesitás y lo charlamos. Respondo en menos de 24 h ·{' '}
-                <a className={s.panelMail} href="mailto:hola@quivorax.com">
-                  hola@quivorax.com
-                </a>
-              </>
+              <>Escribime por WhatsApp y lo vemos. Te respondo yo, en el día.</>
             ) : (
               <>
                 {n.body}
                 {n.url && (
                   <>
                     {' '}
-                    <a
-                      className={s.panelMail}
-                      href={n.url}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
+                    <a className={s.panelMail} href={n.url} target="_blank" rel="noreferrer">
                       Ver sitio ↗
                     </a>
                   </>
@@ -75,6 +66,12 @@ export function NodePanel({ heroProgress = 0 }: NodePanelProps) {
               </>
             )}
           </p>
+
+          {n.kind === 'contact' && (
+            <a className={s.panelWa} href={WHATSAPP_URL} target="_blank" rel="noreferrer">
+              WhatsApp · {WHATSAPP_DISPLAY} ↗
+            </a>
+          )}
 
           <button className={s.panelClose} onClick={back}>
             {n.branch ? '↖ volver a la rama' : '↖ volver al mapa'} · esc

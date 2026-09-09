@@ -1,6 +1,7 @@
-import { useEffect, useRef, type CSSProperties } from 'react';
+import { useEffect, useRef, type CSSProperties, type MouseEvent as ReactMouseEvent } from 'react';
 import { useMapStore } from '@/store/useMapStore';
 import { BRANCHES, NODE_BY_ID } from '@/data/map';
+import { useLenis } from '@/components/layout/SmoothScroll';
 import { Minimap } from './Minimap';
 import { Logo } from './Logo';
 import s from './overlay.module.css';
@@ -16,10 +17,18 @@ interface MapOverlayProps {
  */
 export function MapOverlay({ heroProgress = 0 }: MapOverlayProps) {
   const { mode, branch, goMap, goBranch } = useMapStore();
+  const lenis = useLenis();
 
   const dimIntro = mode !== 'map' && mode !== 'intro';
   const back = () => (mode === 'node' && branch ? goBranch(branch) : goMap());
   const faded = heroProgress > 0.6;
+
+  const scrollToContent = (e: ReactMouseEvent) => {
+    e.preventDefault();
+    const y = window.innerHeight * 0.94;
+    if (lenis) lenis.scrollTo(y, { duration: 1.4 });
+    else window.scrollTo({ top: y, behavior: 'smooth' });
+  };
 
   return (
     <div
@@ -45,7 +54,12 @@ export function MapOverlay({ heroProgress = 0 }: MapOverlayProps) {
         <p className={s.introHint}>Elegí una rama · o tocá un nodo</p>
       </div>
 
-      <a className={s.scrollCue} href="#quivorax" data-dim={dimIntro || undefined}>
+      <a
+        className={s.scrollCue}
+        href="#quivorax"
+        onClick={scrollToContent}
+        data-dim={dimIntro || undefined}
+      >
         <span>conocé más</span>
         <span className={s.scrollCueArrow}>↓</span>
       </a>

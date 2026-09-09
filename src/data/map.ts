@@ -219,7 +219,7 @@ function build(): { nodes: MapNode[]; edges: [string, string][] } {
     kind: 'contact',
     position: [0.2, -0.4, 2.6],
     title: '¿Tenés algo que construir o blindar?',
-    body: 'Contame qué necesitás y lo charlamos. Respondo en menos de 24 h — hola@quivorax.com',
+    body: 'Escribime por WhatsApp y lo vemos. Te respondo yo, en el día.',
   });
   edges.push(['quivorax', 'trabajemos']);
 
