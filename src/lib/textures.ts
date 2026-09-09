@@ -25,9 +25,9 @@ export function glowTexture(): THREE.Texture {
 let bg: THREE.Texture | null = null;
 
 /**
- * Fondo de la escena: degradé vertical + nebulosas suaves + campo de estrellas.
- * Se dibuja una sola vez en un canvas grande (equirectangular 2:1) y se cachea.
- * RNG determinista para que las estrellas no "salten" entre recargas.
+ * Fondo de la escena: NO es el espacio, es un ciberespacio / sala de datos.
+ * Degradé frío + malla de puntos (data grid) + anillos HUD concéntricos +
+ * scanlines tenues. Sin estrellas ni nebulosas. Canvas grande cacheado.
  */
 export function bgGradientTexture(): THREE.Texture {
   if (bg) return bg;
@@ -38,50 +38,125 @@ export function bgGradientTexture(): THREE.Texture {
   canvas.height = h;
   const ctx = canvas.getContext('2d');
   if (ctx) {
-    // base vertical (cenit azulado → horizonte → casi negro)
+    // base vertical fría
     const g = ctx.createLinearGradient(0, 0, 0, h);
-    g.addColorStop(0, '#0a1020');
-    g.addColorStop(0.42, '#070b14');
-    g.addColorStop(0.72, '#04060c');
-    g.addColorStop(1, '#020308');
+    g.addColorStop(0, '#081019');
+    g.addColorStop(0.5, '#050b12');
+    g.addColorStop(1, '#03070c');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
 
-    // nebulosas: radiales muy tenues en azul/violeta
-    const nebula = (x: number, y: number, r: number, color: string, a: number) => {
-      const rg = ctx.createRadialGradient(x, y, 0, x, y, r);
-      rg.addColorStop(0, color);
-      rg.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.globalAlpha = a;
-      ctx.fillStyle = rg;
-      ctx.fillRect(0, 0, w, h);
-    };
-    nebula(w * 0.3, h * 0.4, 640, '#1b2b55', 0.5);
-    nebula(w * 0.74, h * 0.55, 560, '#2a1c4a', 0.38);
-    nebula(w * 0.53, h * 0.28, 460, '#123048', 0.32);
-    ctx.globalAlpha = 1;
+    // viñeta suave
+    const vg = ctx.createRadialGradient(w / 2, h / 2, h * 0.2, w / 2, h / 2, w * 0.62);
+    vg.addColorStop(0, 'rgba(0,0,0,0)');
+    vg.addColorStop(1, 'rgba(0,0,0,0.55)');
+    ctx.fillStyle = vg;
+    ctx.fillRect(0, 0, w, h);
 
-    // estrellas (RNG determinista lineal-congruente)
-    let seed = 20260908;
-    const rand = () => {
-      seed = (seed * 1664525 + 1013904223) >>> 0;
-      return seed / 4294967296;
-    };
-    for (let i = 0; i < 1400; i++) {
-      const x = rand() * w;
-      const y = rand() * h;
-      const s = rand();
-      const size = s > 0.986 ? 2.2 : s > 0.9 ? 1.4 : 0.8;
-      ctx.globalAlpha = 0.22 + rand() * 0.62;
-      ctx.fillStyle = s > 0.97 ? '#bcd0ff' : s > 0.85 ? '#ffffff' : '#e7ecff';
+    // anillos HUD concéntricos, muy tenues
+    ctx.strokeStyle = 'rgba(90,170,235,0.06)';
+    ctx.lineWidth = 1.5;
+    for (let r = 120; r < w * 0.6; r += 130) {
       ctx.beginPath();
-      ctx.arc(x, y, size, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.arc(w / 2, h / 2, r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // malla de puntos / cruces (data grid)
+    const step = 46;
+    for (let y = step; y < h; y += step) {
+      for (let x = step; x < w; x += step) {
+        const near = 1 - Math.min(1, Math.hypot(x - w / 2, y - h / 2) / (w * 0.5));
+        ctx.globalAlpha = 0.05 + near * 0.09;
+        ctx.fillStyle = '#7cc2f0';
+        // cruz de 3px
+        ctx.fillRect(x - 1, y, 3, 1);
+        ctx.fillRect(x, y - 1, 1, 3);
+      }
     }
     ctx.globalAlpha = 1;
+
+    // scanlines horizontales
+    ctx.fillStyle = 'rgba(120,200,255,0.02)';
+    for (let y = 0; y < h; y += 4) ctx.fillRect(0, y, w, 1);
   }
   bg = new THREE.CanvasTexture(canvas);
   bg.colorSpace = THREE.SRGBColorSpace;
   bg.anisotropy = 4;
   return bg;
+}
+
+let hudSphere: THREE.Texture | null = null;
+
+/**
+ * Textura para la "cáscara HUD" del orbe: líneas finas tipo escáner sobre fondo
+ * transparente (latitudes, meridianos, ticks, cruces). Se mapea en una esfera
+ * apenas más grande que el vidrio y se anima girando. Cacheada.
+ */
+export function hudSphereTexture(): THREE.Texture {
+  if (hudSphere) return hudSphere;
+  const w = 1024;
+  const h = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.clearRect(0, 0, w, h);
+    ctx.strokeStyle = 'rgba(150,215,255,0.55)';
+    ctx.fillStyle = 'rgba(150,215,255,0.55)';
+    ctx.lineWidth = 1.4;
+
+    // latitudes
+    for (let i = 1; i < 6; i++) {
+      const y = (i / 6) * h;
+      ctx.globalAlpha = i === 3 ? 0.7 : 0.32;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+      ctx.stroke();
+    }
+    // meridianos con guiones
+    ctx.setLineDash([6, 8]);
+    for (let i = 0; i < 8; i++) {
+      const x = (i / 8) * w;
+      ctx.globalAlpha = 0.28;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, h);
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+
+    // ticks sobre la latitud ecuatorial
+    ctx.globalAlpha = 0.6;
+    for (let x = 0; x < w; x += 22) {
+      const long = x % 88 === 0 ? 10 : 5;
+      ctx.beginPath();
+      ctx.moveTo(x, h / 2 - long);
+      ctx.lineTo(x, h / 2 + long);
+      ctx.stroke();
+    }
+
+    // un par de cruces / marcas de foco
+    const mark = (cx: number, cy: number, s: number) => {
+      ctx.globalAlpha = 0.8;
+      ctx.beginPath();
+      ctx.moveTo(cx - s, cy);
+      ctx.lineTo(cx + s, cy);
+      ctx.moveTo(cx, cy - s);
+      ctx.lineTo(cx, cy + s);
+      ctx.stroke();
+      ctx.globalAlpha = 0.5;
+      ctx.strokeRect(cx - s, cy - s, s * 2, s * 2);
+    };
+    mark(w * 0.22, h * 0.34, 14);
+    mark(w * 0.68, h * 0.62, 12);
+    mark(w * 0.82, h * 0.28, 9);
+    ctx.globalAlpha = 1;
+  }
+  hudSphere = new THREE.CanvasTexture(canvas);
+  hudSphere.colorSpace = THREE.SRGBColorSpace;
+  hudSphere.wrapS = THREE.RepeatWrapping;
+  return hudSphere;
 }

@@ -4,7 +4,32 @@ import { Billboard, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { NODES, nodeColor, type MapNode } from '@/data/map';
 import { useMapStore } from '@/store/useMapStore';
-import { glowTexture } from '@/lib/textures';
+import { useAppStore } from '@/store/useAppStore';
+import { glowTexture, hudSphereTexture } from '@/lib/textures';
+
+/** Halo de borde (fresnel) del orbe: sólo se ve el filo, en additive. */
+const RIM_VERT = /* glsl */ `
+  varying vec3 vN;
+  varying vec3 vWP;
+  void main() {
+    vec4 wp = modelMatrix * vec4(position, 1.0);
+    vWP = wp.xyz;
+    vN = normalize(mat3(modelMatrix) * normal);
+    gl_Position = projectionMatrix * viewMatrix * wp;
+  }
+`;
+const RIM_FRAG = /* glsl */ `
+  uniform vec3 uColor;
+  uniform float uOpacity;
+  uniform float uPower;
+  varying vec3 vN;
+  varying vec3 vWP;
+  void main() {
+    vec3 V = normalize(cameraPosition - vWP);
+    float f = pow(1.0 - clamp(dot(normalize(vN), V), 0.0, 1.0), uPower);
+    gl_FragColor = vec4(uColor * f, f * uOpacity);
+  }
+`;
 
 /** ¿este nodo está "activo" en el estado actual? 0..1 */
 function nodeActivity(
@@ -45,6 +70,12 @@ function NodeMesh({ node }: { node: MapNode }) {
   const outer = useRef<THREE.Group>(null);
   const inner = useRef<THREE.Group>(null);
   const mat = useRef<THREE.MeshPhysicalMaterial>(null);
+  const hud = useRef<THREE.Mesh>(null);
+  const hudMat = useRef<THREE.MeshBasicMaterial>(null);
+  const rimMat = useRef<THREE.ShaderMaterial>(null);
+  const core = useRef<THREE.Group>(null);
+  const coreMat = useRef<THREE.MeshBasicMaterial>(null);
+  const coreGlowMat = useRef<THREE.SpriteMaterial>(null);
   const glowMat = useRef<THREE.SpriteMaterial>(null);
   const ringMat = useRef<THREE.MeshBasicMaterial>(null);
   const ring = useRef<THREE.Mesh>(null);
@@ -54,7 +85,20 @@ function NodeMesh({ node }: { node: MapNode }) {
 
   const color = useMemo(() => new THREE.Color(nodeColor(node)), [node]);
   const colorHex = useMemo(() => `#${color.getHexString()}`, [color]);
+  const coreColor = useMemo(() => color.clone().lerp(new THREE.Color('#eaf6ff'), 0.55), [color]);
   const glowMap = useMemo(() => glowTexture(), []);
+  const hudMap = useMemo(() => hudSphereTexture(), []);
+  const rimUniforms = useMemo(
+    () => ({
+      uColor: { value: color },
+      uOpacity: { value: 0.4 },
+      uPower: { value: 2.6 },
+    }),
+    [color],
+  );
+  const seed = useMemo(() => node.position[0] * 1.7 + node.position[1] * 0.9, [node]);
+
+  const glass = useAppStore((s) => s.device.glassTransmission);
 
   const isContact = node.kind === 'contact';
   const baseSize =
@@ -75,15 +119,44 @@ function NodeMesh({ node }: { node: MapNode }) {
       outer.current.position.x = node.position[0] + Math.cos(t * 0.5 + node.position[1]) * 0.04;
     }
     if (inner.current) {
-      const s = baseSize * (0.8 + act * 0.55);
+      const s = baseSize * (0.92 + act * 0.16);
       inner.current.scale.lerp(new THREE.Vector3(s, s, s), damp);
     }
     if (mat.current) {
-      mat.current.emissiveIntensity = THREE.MathUtils.lerp(mat.current.emissiveIntensity, 0.18 + act * 0.9, damp);
-      mat.current.opacity = THREE.MathUtils.lerp(mat.current.opacity, 0.45 + act * 0.5, damp);
+      mat.current.emissiveIntensity = THREE.MathUtils.lerp(mat.current.emissiveIntensity, 0.05 + act * 0.4, damp);
+      mat.current.opacity = THREE.MathUtils.lerp(
+        mat.current.opacity,
+        (glass ? 0.72 : 0.3) + act * 0.24,
+        damp,
+      );
+    }
+    // cáscara HUD: gira despacio, se aclara con la actividad
+    if (hud.current) {
+      hud.current.rotation.y += delta * 0.22;
+      hud.current.rotation.x += delta * 0.045;
+    }
+    if (hudMat.current) {
+      hudMat.current.opacity = THREE.MathUtils.lerp(hudMat.current.opacity, 0.05 + act * 0.24, damp);
+    }
+    // halo de borde (fresnel)
+    if (rimMat.current) {
+      const u = rimMat.current.uniforms.uOpacity as { value: number };
+      u.value = THREE.MathUtils.lerp(u.value, 0.18 + act * 0.7, damp);
+    }
+    // núcleo de energía
+    if (core.current) {
+      core.current.rotation.y += delta * 0.5;
+      const cs = 0.85 + Math.sin(t * 2 + seed) * 0.07 + act * 0.15;
+      core.current.scale.setScalar(cs);
+    }
+    if (coreMat.current) {
+      coreMat.current.opacity = THREE.MathUtils.lerp(coreMat.current.opacity, 0.28 + act * 0.5, damp);
+    }
+    if (coreGlowMat.current) {
+      coreGlowMat.current.opacity = THREE.MathUtils.lerp(coreGlowMat.current.opacity, 0.1 + act * 0.4, damp);
     }
     if (glowMat.current) {
-      const target = 0.05 + act * (hovered === node.id ? 0.34 : 0.16);
+      const target = 0.03 + act * (hovered === node.id ? 0.24 : 0.11);
       glowMat.current.opacity = THREE.MathUtils.lerp(glowMat.current.opacity, target, damp);
     }
     if (ring.current && ringMat.current) {
@@ -127,27 +200,77 @@ function NodeMesh({ node }: { node: MapNode }) {
   return (
     <group ref={outer} position={node.position}>
       <group ref={inner} scale={baseSize}>
+        {/* cáscara de vidrio */}
         <mesh>
-          <sphereGeometry args={[1, 32, 32]} />
+          <sphereGeometry args={[1, 48, 48]} />
           <meshPhysicalMaterial
             ref={mat}
-            color={color}
+            color="#dcefff"
             emissive={color}
-            emissiveIntensity={1}
-            roughness={0.16}
+            emissiveIntensity={0.2}
+            roughness={0.12}
             metalness={0}
+            transmission={glass ? 1 : 0}
+            thickness={0.5}
+            ior={1.35}
+            attenuationColor={color}
+            attenuationDistance={2.4}
             clearcoat={1}
-            clearcoatRoughness={0.35}
-            envMapIntensity={1.5}
+            clearcoatRoughness={0.16}
+            envMapIntensity={1.4}
             transparent
-            opacity={0.92}
+            opacity={glass ? 0.8 : 0.32}
           />
         </mesh>
-        {/* núcleo interior, apenas más claro que la esfera */}
-        <mesh scale={0.5}>
-          <sphereGeometry args={[1, 16, 16]} />
-          <meshBasicMaterial color="#dfe8ff" transparent opacity={0.4} toneMapped={false} />
+
+        {/* cáscara HUD: líneas tipo escáner sobre el vidrio */}
+        <mesh ref={hud} scale={1.04}>
+          <sphereGeometry args={[1, 32, 32]} />
+          <meshBasicMaterial
+            ref={hudMat}
+            map={hudMap}
+            color={color}
+            transparent
+            opacity={0.16}
+            depthWrite={false}
+            blending={THREE.AdditiveBlending}
+            toneMapped={false}
+          />
         </mesh>
+
+        {/* halo de borde (fresnel) */}
+        <mesh scale={1.015}>
+          <sphereGeometry args={[1, 32, 32]} />
+          <shaderMaterial
+            ref={rimMat}
+            vertexShader={RIM_VERT}
+            fragmentShader={RIM_FRAG}
+            uniforms={rimUniforms}
+            transparent
+            depthWrite={false}
+            blending={THREE.AdditiveBlending}
+            toneMapped={false}
+          />
+        </mesh>
+
+        {/* núcleo de energía */}
+        <group ref={core} scale={0.85}>
+          <mesh scale={0.34}>
+            <sphereGeometry args={[1, 18, 18]} />
+            <meshBasicMaterial ref={coreMat} color={coreColor} transparent opacity={0.4} toneMapped={false} />
+          </mesh>
+          <sprite scale={1.7}>
+            <spriteMaterial
+              ref={coreGlowMat}
+              map={glowMap}
+              color={coreColor}
+              transparent
+              opacity={0.25}
+              depthWrite={false}
+              blending={THREE.AdditiveBlending}
+            />
+          </sprite>
+        </group>
       </group>
 
       {/* zona de toque ampliada (mobile): invisible pero sí recibe raycast */}

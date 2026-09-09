@@ -40,8 +40,8 @@ export function MapScene() {
 
   return (
     <>
-      <color attach="background" args={['#04060a']} />
-      <fog attach="fog" args={['#070c16', 16, 46]} />
+      <color attach="background" args={['#04070c']} />
+      <fog attach="fog" args={['#05090f', 18, 50]} />
 
       <MapCamera />
 
@@ -66,7 +66,8 @@ export function MapScene() {
         <SceneReady />
       </Suspense>
 
-      <Particles radius={18} color="#7d93c8" density={tier === 'low' ? 0.6 : 0.85} />
+      {/* motas de datos flotando en el ciberespacio */}
+      <Particles radius={17} color="#5bd0ff" density={tier === 'low' ? 0.5 : 0.7} />
 
       <Effects bloom vignette colorGrade bloomIntensity={0.42} />
 

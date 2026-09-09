@@ -21,6 +21,8 @@ export interface DeviceProfile {
   heavyPostFX: boolean;
   /** Reflejos en tiempo real (plano espejo). Caro: pasada de render extra por frame. */
   liveReflections: boolean;
+  /** Vidrio real (material.transmission). 1 pasada compartida — ok salvo en 'low'. */
+  glassTransmission: boolean;
   /** Resolución sugerida para sombras */
   shadowMapSize: number;
   prefersReducedMotion: boolean;
@@ -100,7 +102,8 @@ export function getDeviceProfile(): DeviceProfile {
     dprMax: tier === 'low' ? 1.5 : isMobile ? 1.75 : tier === 'mid' ? 1.9 : 2,
     particleBudget: tier === 'low' ? 3000 : tier === 'mid' ? 9000 : 20000,
     heavyPostFX: tier === 'high',
-    liveReflections: tier !== 'low' && !prefersReducedMotion,
+    liveReflections: tier === 'high' && !prefersReducedMotion,
+    glassTransmission: tier !== 'low',
     shadowMapSize: tier === 'low' ? 512 : tier === 'mid' ? 1024 : 2048,
   };
 

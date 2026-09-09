@@ -52,7 +52,7 @@ function RadarGrid() {
   return (
     <group ref={group} position={[0, 0, -1.2]}>
       <lineSegments geometry={geometry}>
-        <lineBasicMaterial color="#3a5a8a" transparent opacity={0.09} depthWrite={false} toneMapped={false} />
+        <lineBasicMaterial color="#4d80b4" transparent opacity={0.13} depthWrite={false} toneMapped={false} />
       </lineSegments>
     </group>
   );
