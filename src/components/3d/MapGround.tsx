@@ -21,15 +21,15 @@ export function MapGround() {
         {live ? (
           <MeshReflectorMaterial
             resolution={tier === 'high' ? 1024 : 512}
-            mirror={tier === 'high' ? 0.55 : 0.4}
-            mixStrength={tier === 'high' ? 1.1 : 0.8}
-            blur={tier === 'high' ? [400, 120] : [0, 0]}
-            mixBlur={tier === 'high' ? 1 : 0}
-            depthScale={1}
+            mirror={0.32}
+            mixStrength={0.6}
+            blur={tier === 'high' ? [140, 48] : [0, 0]}
+            mixBlur={tier === 'high' ? 0.6 : 0}
+            depthScale={0.9}
             minDepthThreshold={0.4}
             maxDepthThreshold={1.2}
-            roughness={0.85}
-            metalness={0.45}
+            roughness={0.9}
+            metalness={0.4}
             color="#05070c"
           />
         ) : (

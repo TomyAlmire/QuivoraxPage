@@ -74,9 +74,9 @@ function BranchAuras() {
     for (const { id } of centers) {
       const m = refs.current[id];
       if (!m) continue;
-      let target = mode === 'map' || mode === 'intro' ? 0.16 : 0.06;
-      if (mode === 'branch' && branch === id) target = 0.4;
-      if (mode === 'node' && branch === id) target = 0.28;
+      let target = mode === 'map' || mode === 'intro' ? 0.09 : 0.04;
+      if (mode === 'branch' && branch === id) target = 0.22;
+      if (mode === 'node' && branch === id) target = 0.14;
       target *= 1 + Math.sin(state.clock.elapsedTime * 0.6 + id.length) * 0.15;
       m.opacity = THREE.MathUtils.lerp(m.opacity, target, damp);
     }
@@ -101,7 +101,7 @@ function BranchAuras() {
       ))}
       {/* aura central */}
       <sprite position={[0, 0, -0.6]} scale={14}>
-        <spriteMaterial map={map} color="#4a6bd8" transparent opacity={0.1} depthWrite={false} blending={THREE.AdditiveBlending} />
+        <spriteMaterial map={map} color="#4a6bd8" transparent opacity={0.055} depthWrite={false} blending={THREE.AdditiveBlending} />
       </sprite>
     </>
   );

@@ -40,7 +40,7 @@ export function Effects({
   noise = false,
   depthOfField = false,
   colorGrade = false,
-  bloomIntensity = 0.8,
+  bloomIntensity = 0.55,
 }: EffectsProps) {
   const tier = useAppStore((s) => s.quality());
   const isMobile = useAppStore((s) => s.device.isMobile);
@@ -61,8 +61,8 @@ export function Effects({
         <Bloom
           key="bloom"
           intensity={bloomStrength}
-          luminanceThreshold={0.72}
-          luminanceSmoothing={0.25}
+          luminanceThreshold={0.9}
+          luminanceSmoothing={0.2}
           mipmapBlur
         />,
       );

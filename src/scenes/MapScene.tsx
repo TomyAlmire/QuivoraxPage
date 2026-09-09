@@ -46,10 +46,10 @@ export function MapScene() {
       <MapCamera />
 
       {/* Luz: ambiente bajo + hemisférico (cielo/piso) + key cálida + relleno frío. */}
-      <ambientLight intensity={0.22} />
-      <hemisphereLight args={['#9fb8ff', '#0a0f1a', 0.35]} />
-      <directionalLight position={[6, 9, 7]} intensity={0.95} color="#fff2e0" />
-      <directionalLight position={[-8, 3, -6]} intensity={0.5} color="#5b7cff" />
+      <ambientLight intensity={0.32} />
+      <hemisphereLight args={['#9fb8ff', '#0a0f1a', 0.4]} />
+      <directionalLight position={[6, 9, 7]} intensity={0.85} color="#fff2e0" />
+      <directionalLight position={[-8, 3, -6]} intensity={0.45} color="#5b7cff" />
       <Environment resolution={tier === 'low' ? 128 : 256}>
         <Lightformer form="rect" intensity={0.9} position={[0, 4, -6]} scale={[12, 6, 1]} color="#9fb8ff" />
         <Lightformer form="circle" intensity={1.2} position={[5, -2, 4]} scale={5} color="#3ddc84" />
@@ -68,7 +68,7 @@ export function MapScene() {
 
       <Particles radius={18} color="#7d93c8" density={tier === 'low' ? 0.6 : 0.85} />
 
-      <Effects bloom vignette chromaticAberration colorGrade depthOfField bloomIntensity={1.15} />
+      <Effects bloom vignette colorGrade bloomIntensity={0.42} />
 
       <Suspense fallback={null}>
         <DebugPerf />

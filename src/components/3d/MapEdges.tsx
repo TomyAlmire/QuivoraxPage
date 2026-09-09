@@ -47,14 +47,14 @@ export function MapEdges() {
         e.a.branch === branch || e.b.branch === branch || e.a.kind === 'root' || e.b.kind === 'root';
       const touchesHover = hovered && (e.a.id === hovered || e.b.id === hovered);
 
-      let target = 0.35;
-      if (mode === 'branch') target = touchesBranch ? 1 : 0.1;
-      if (mode === 'node') target = touchesHover || e.a.branch === branch ? 0.85 : 0.08;
+      let target = 0.3;
+      if (mode === 'branch') target = touchesBranch ? 0.8 : 0.08;
+      if (mode === 'node') target = touchesHover || e.a.branch === branch ? 0.7 : 0.07;
       if (e.contact) {
         // el hilo al CTA late suave y nunca se apaga del todo
-        target = mode === 'node' ? 0.12 : 0.7 + Math.sin(state.clock.elapsedTime * 1.6) * 0.28;
+        target = mode === 'node' ? 0.1 : 0.5 + Math.sin(state.clock.elapsedTime * 1.6) * 0.16;
       }
-      if (touchesHover) target = 1.4;
+      if (touchesHover) target = 1.05;
 
       intensity[i] = THREE.MathUtils.lerp(intensity[i], target, damp);
       const k = intensity[i];

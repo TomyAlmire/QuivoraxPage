@@ -79,16 +79,16 @@ function NodeMesh({ node }: { node: MapNode }) {
       inner.current.scale.lerp(new THREE.Vector3(s, s, s), damp);
     }
     if (mat.current) {
-      mat.current.emissiveIntensity = THREE.MathUtils.lerp(mat.current.emissiveIntensity, 0.5 + act * 3, damp);
-      mat.current.opacity = THREE.MathUtils.lerp(mat.current.opacity, 0.3 + act * 0.7, damp);
+      mat.current.emissiveIntensity = THREE.MathUtils.lerp(mat.current.emissiveIntensity, 0.18 + act * 0.9, damp);
+      mat.current.opacity = THREE.MathUtils.lerp(mat.current.opacity, 0.45 + act * 0.5, damp);
     }
     if (glowMat.current) {
-      const target = 0.12 + act * (hovered === node.id ? 0.85 : 0.5);
+      const target = 0.05 + act * (hovered === node.id ? 0.34 : 0.16);
       glowMat.current.opacity = THREE.MathUtils.lerp(glowMat.current.opacity, target, damp);
     }
     if (ring.current && ringMat.current) {
       ring.current.rotation.z = t * (node.kind === 'root' ? 0.25 : 0.5) * (node.position[0] > 0 ? 1 : -1);
-      const rt = showRing ? 0.1 + act * 0.55 : 0;
+      const rt = showRing ? 0.08 + act * 0.34 : 0;
       ringMat.current.opacity = THREE.MathUtils.lerp(ringMat.current.opacity, rt, damp);
       const rs = (node.kind === 'root' ? 1.5 : 1.05) + Math.sin(t * 1.2 + node.position[1]) * 0.06;
       ring.current.scale.setScalar(rs);
@@ -96,8 +96,8 @@ function NodeMesh({ node }: { node: MapNode }) {
     // "ping" del CTA: anillo que se expande y se desvanece en loop
     if (ping.current && pingMat.current) {
       const cyc = (t * 0.5) % 1;
-      ping.current.scale.setScalar(1 + cyc * 2.6);
-      pingMat.current.opacity = mode === 'node' ? 0 : (1 - cyc) * (1 - cyc) * 0.55;
+      ping.current.scale.setScalar(1 + cyc * 2.4);
+      pingMat.current.opacity = mode === 'node' ? 0 : (1 - cyc) * (1 - cyc) * 0.32;
     }
     if (labelWrap.current) {
       const lv = labelVisibility(node, mode, branch, hovered);
@@ -143,10 +143,10 @@ function NodeMesh({ node }: { node: MapNode }) {
             opacity={0.92}
           />
         </mesh>
-        {/* núcleo interior brillante */}
-        <mesh scale={0.55}>
+        {/* núcleo interior, apenas más claro que la esfera */}
+        <mesh scale={0.5}>
           <sphereGeometry args={[1, 16, 16]} />
-          <meshBasicMaterial color="#ffffff" transparent opacity={0.85} toneMapped={false} />
+          <meshBasicMaterial color="#dfe8ff" transparent opacity={0.4} toneMapped={false} />
         </mesh>
       </group>
 
@@ -200,7 +200,7 @@ function NodeMesh({ node }: { node: MapNode }) {
           map={glowMap}
           color={color}
           transparent
-          opacity={0.35}
+          opacity={0.18}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
         />
