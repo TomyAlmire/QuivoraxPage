@@ -3,15 +3,18 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { BRANCHES, branchCenter } from '@/data/map';
 import { useMapStore } from '@/store/useMapStore';
-import { useAppStore } from '@/store/useAppStore';
 import { glowTexture, bgGradientTexture } from '@/lib/textures';
 
-/** Fondo con degradé (esfera invertida) — reemplaza el negro plano. */
+/** Fondo: esfera invertida con degradé + nebulosas + estrellas, girando muy despacio. */
 function GradientBackdrop() {
   const map = useMemo(() => bgGradientTexture(), []);
+  const ref = useRef<THREE.Mesh>(null);
+  useFrame((_, delta) => {
+    if (ref.current) ref.current.rotation.y += delta * 0.004;
+  });
   return (
-    <mesh scale={60} renderOrder={-10}>
-      <sphereGeometry args={[1, 32, 32]} />
+    <mesh ref={ref} scale={60} renderOrder={-10}>
+      <sphereGeometry args={[1, 48, 48]} />
       <meshBasicMaterial map={map} side={THREE.BackSide} depthWrite={false} fog={false} toneMapped={false} />
     </mesh>
   );
@@ -105,12 +108,13 @@ function BranchAuras() {
 }
 
 export function MapAtmosphere() {
-  const tier = useAppStore((s) => s.quality());
+  // La rejilla es un único lineSegments (~1.4k vértices, 1 draw call): barata,
+  // se deja también en mobile para no perder el "piso" de referencia.
   return (
     <>
       <GradientBackdrop />
       <BranchAuras />
-      {tier !== 'low' && <RadarGrid />}
+      <RadarGrid />
     </>
   );
 }

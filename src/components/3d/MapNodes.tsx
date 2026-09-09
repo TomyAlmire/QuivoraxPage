@@ -17,14 +17,20 @@ function nodeActivity(
   if (hovered === node.id) return 1;
   if (mode === 'node') return selected === node.id ? 1 : 0.1;
   if (mode === 'branch') return node.branch === branch || node.kind === 'root' ? 0.9 : 0.12;
-  return node.kind === 'root' ? 1 : 0.62;
+  if (node.kind === 'root') return 1;
+  if (node.kind === 'contact') return 0.92; // el CTA "Trabajemos" siempre destaca
+  return 0.62;
 }
 
 /** ¿mostrar la etiqueta de texto de este nodo? */
 function labelVisibility(node: MapNode, mode: string, branch: string | null, hovered: string | null): number {
   if (hovered === node.id) return 1;
   if (node.kind === 'root') return mode === 'map' || mode === 'intro' ? 0.9 : 0;
-  if (node.kind === 'contact') return mode === 'map' ? 0.7 : 0;
+  if (node.kind === 'contact') {
+    if (mode === 'map' || mode === 'intro') return 1;
+    if (mode === 'branch') return 0.55;
+    return 0;
+  }
   if (node.kind === 'core') {
     if (mode === 'map' || mode === 'intro') return 0.85;
     if (mode === 'branch') return node.branch === branch ? 1 : 0;
@@ -38,19 +44,22 @@ function labelVisibility(node: MapNode, mode: string, branch: string | null, hov
 function NodeMesh({ node }: { node: MapNode }) {
   const outer = useRef<THREE.Group>(null);
   const inner = useRef<THREE.Group>(null);
-  const mat = useRef<THREE.MeshStandardMaterial>(null);
+  const mat = useRef<THREE.MeshPhysicalMaterial>(null);
   const glowMat = useRef<THREE.SpriteMaterial>(null);
   const ringMat = useRef<THREE.MeshBasicMaterial>(null);
   const ring = useRef<THREE.Mesh>(null);
+  const ping = useRef<THREE.Mesh>(null);
+  const pingMat = useRef<THREE.MeshBasicMaterial>(null);
   const labelWrap = useRef<HTMLDivElement>(null);
 
   const color = useMemo(() => new THREE.Color(nodeColor(node)), [node]);
   const colorHex = useMemo(() => `#${color.getHexString()}`, [color]);
   const glowMap = useMemo(() => glowTexture(), []);
 
+  const isContact = node.kind === 'contact';
   const baseSize =
-    node.kind === 'root' ? 0.52 : node.kind === 'core' ? 0.36 : node.kind === 'contact' ? 0.26 : 0.19;
-  const showRing = node.kind === 'root' || node.kind === 'core';
+    node.kind === 'root' ? 0.52 : node.kind === 'core' ? 0.36 : isContact ? 0.3 : 0.19;
+  const showRing = node.kind === 'root' || node.kind === 'core' || isContact;
 
   const setHovered = useMapStore((s) => s.setHovered);
   const goNode = useMapStore((s) => s.goNode);
@@ -84,6 +93,12 @@ function NodeMesh({ node }: { node: MapNode }) {
       const rs = (node.kind === 'root' ? 1.5 : 1.05) + Math.sin(t * 1.2 + node.position[1]) * 0.06;
       ring.current.scale.setScalar(rs);
     }
+    // "ping" del CTA: anillo que se expande y se desvanece en loop
+    if (ping.current && pingMat.current) {
+      const cyc = (t * 0.5) % 1;
+      ping.current.scale.setScalar(1 + cyc * 2.6);
+      pingMat.current.opacity = mode === 'node' ? 0 : (1 - cyc) * (1 - cyc) * 0.55;
+    }
     if (labelWrap.current) {
       const lv = labelVisibility(node, mode, branch, hovered);
       const cur = Number(labelWrap.current.dataset.o ?? '0');
@@ -112,17 +127,20 @@ function NodeMesh({ node }: { node: MapNode }) {
   return (
     <group ref={outer} position={node.position}>
       <group ref={inner} scale={baseSize}>
-        <mesh onPointerOver={onOver} onPointerOut={onOut} onClick={onClick}>
-          <sphereGeometry args={[1, 28, 28]} />
-          <meshStandardMaterial
+        <mesh>
+          <sphereGeometry args={[1, 32, 32]} />
+          <meshPhysicalMaterial
             ref={mat}
             color={color}
             emissive={color}
             emissiveIntensity={1}
-            roughness={0.3}
-            metalness={0.1}
+            roughness={0.16}
+            metalness={0}
+            clearcoat={1}
+            clearcoatRoughness={0.35}
+            envMapIntensity={1.5}
             transparent
-            opacity={0.9}
+            opacity={0.92}
           />
         </mesh>
         {/* núcleo interior brillante */}
@@ -131,6 +149,12 @@ function NodeMesh({ node }: { node: MapNode }) {
           <meshBasicMaterial color="#ffffff" transparent opacity={0.85} toneMapped={false} />
         </mesh>
       </group>
+
+      {/* zona de toque ampliada (mobile): invisible pero sí recibe raycast */}
+      <mesh onPointerOver={onOver} onPointerOut={onOut} onClick={onClick}>
+        <sphereGeometry args={[baseSize + 0.34, 12, 12]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+      </mesh>
 
       {showRing && (
         <Billboard>
@@ -149,7 +173,28 @@ function NodeMesh({ node }: { node: MapNode }) {
         </Billboard>
       )}
 
-      <sprite scale={node.kind === 'root' ? 7.5 : node.kind === 'core' ? 5.2 : 4}>
+      {isContact && (
+        <Billboard>
+          <mesh ref={ping} scale={1}>
+            <ringGeometry args={[0.82, 0.99, 48]} />
+            <meshBasicMaterial
+              ref={pingMat}
+              color={color}
+              transparent
+              opacity={0.5}
+              side={THREE.DoubleSide}
+              depthWrite={false}
+              toneMapped={false}
+            />
+          </mesh>
+        </Billboard>
+      )}
+
+      <sprite
+        scale={
+          node.kind === 'root' ? 7.5 : node.kind === 'core' ? 5.2 : isContact ? 5 : 4
+        }
+      >
         <spriteMaterial
           ref={glowMat}
           map={glowMap}
@@ -178,21 +223,41 @@ function NodeMesh({ node }: { node: MapNode }) {
             userSelect: 'none',
           }}
         >
-          <span
-            onClick={() => goNode(node.id)}
-            style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-          >
+          {isContact ? (
             <span
+              onClick={() => goNode(node.id)}
               style={{
-                width: 5,
-                height: 5,
-                borderRadius: 9,
-                background: colorHex,
-                boxShadow: `0 0 8px 1px ${colorHex}`,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '5px 11px',
+                borderRadius: 999,
+                border: `1px solid ${colorHex}`,
+                background: 'rgba(255,210,122,0.14)',
+                boxShadow: `0 0 18px -2px ${colorHex}`,
+                backdropFilter: 'blur(3px)',
               }}
-            />
-            {node.label}
-          </span>
+            >
+              {node.label} →
+            </span>
+          ) : (
+            <span
+              onClick={() => goNode(node.id)}
+              style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            >
+              <span
+                style={{
+                  width: 5,
+                  height: 5,
+                  borderRadius: 9,
+                  background: colorHex,
+                  boxShadow: `0 0 8px 1px ${colorHex}`,
+                }}
+              />
+              {node.label}
+            </span>
+          )}
         </div>
       </Html>
     </group>

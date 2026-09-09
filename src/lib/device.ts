@@ -19,6 +19,8 @@ export interface DeviceProfile {
   particleBudget: number;
   /** Si conviene activar postprocessing pesado (DoF, GodRays, SSR...) */
   heavyPostFX: boolean;
+  /** Reflejos en tiempo real (plano espejo). Caro: pasada de render extra por frame. */
+  liveReflections: boolean;
   /** Resolución sugerida para sombras */
   shadowMapSize: number;
   prefersReducedMotion: boolean;
@@ -76,9 +78,14 @@ export function getDeviceProfile(): DeviceProfile {
   const cores = typeof navigator !== 'undefined' ? navigator.hardwareConcurrency ?? 4 : 4;
   const memory = typeof navigator !== 'undefined' ? ((navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 4) : 4;
 
+  // Un teléfono moderno con GPU decente NO cae a 'low': queremos que el mapa se
+  // vea completo en mobile (mismo escenario, detalle escalado), no recortado.
+  // Sólo GPUs realmente flojas o equipos con pocos núcleos/memoria van a 'low'.
   let tier: QualityTier;
-  if (isMobile || gpu === 'low' || cores <= 4 || memory <= 2) {
+  if (gpu === 'low' || cores <= 3 || memory <= 2) {
     tier = 'low';
+  } else if (isMobile) {
+    tier = 'mid';
   } else if (gpu === 'high' && cores >= 8 && memory >= 8) {
     tier = 'high';
   } else {
@@ -90,9 +97,10 @@ export function getDeviceProfile(): DeviceProfile {
     isMobile,
     isTouch,
     prefersReducedMotion,
-    dprMax: tier === 'low' ? 1.5 : tier === 'mid' ? 1.75 : 2,
-    particleBudget: tier === 'low' ? 1200 : tier === 'mid' ? 6000 : 20000,
+    dprMax: tier === 'low' ? 1.5 : isMobile ? 1.75 : tier === 'mid' ? 1.9 : 2,
+    particleBudget: tier === 'low' ? 3000 : tier === 'mid' ? 9000 : 20000,
     heavyPostFX: tier === 'high',
+    liveReflections: tier !== 'low' && !prefersReducedMotion,
     shadowMapSize: tier === 'low' ? 512 : tier === 'mid' ? 1024 : 2048,
   };
 

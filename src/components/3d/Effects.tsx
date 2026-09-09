@@ -43,13 +43,14 @@ export function Effects({
   bloomIntensity = 0.8,
 }: EffectsProps) {
   const tier = useAppStore((s) => s.quality());
-  const heavyOk = useAppStore((s) => s.device.heavyPostFX);
+  const isMobile = useAppStore((s) => s.device.isMobile);
   const reduced = useAppStore((s) => s.device.prefersReducedMotion);
 
   const caOffset = useMemo(() => new THREE.Vector2(0.0006, 0.0006), []);
 
-  const useDof = depthOfField && heavyOk;
-  const bloomStrength = tier === 'low' ? bloomIntensity * 0.4 : bloomIntensity;
+  // DoF: pasada pesada. Alto siempre; medio sólo en desktop; nunca en 'low'.
+  const useDof = depthOfField && !reduced && (tier === 'high' || (tier === 'mid' && !isMobile));
+  const bloomStrength = tier === 'low' ? bloomIntensity * 0.55 : bloomIntensity;
 
   const passes = useMemo<ReactElement[]>(() => {
     if (reduced) return [];
@@ -68,7 +69,7 @@ export function Effects({
     }
     if (useDof) {
       list.push(
-        <DepthOfField key="dof" focusDistance={0.015} focalLength={0.05} bokehScale={3} />,
+        <DepthOfField key="dof" focusDistance={0.012} focalLength={0.055} bokehScale={3.5} />,
       );
     }
     if (chromaticAberration) {

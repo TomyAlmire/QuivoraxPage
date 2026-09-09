@@ -3,6 +3,7 @@ import { Environment, Lightformer } from '@react-three/drei';
 import { MapNodes } from '@/components/3d/MapNodes';
 import { MapEdges } from '@/components/3d/MapEdges';
 import { MapAtmosphere } from '@/components/3d/MapAtmosphere';
+import { MapGround } from '@/components/3d/MapGround';
 import { MapCamera } from '@/components/3d/MapCamera';
 import { Particles } from '@/components/3d/Particles';
 import { Effects } from '@/components/3d/Effects';
@@ -40,12 +41,16 @@ export function MapScene() {
   return (
     <>
       <color attach="background" args={['#04060a']} />
-      <fog attach="fog" args={['#060a12', 14, 40]} />
+      <fog attach="fog" args={['#070c16', 16, 46]} />
 
       <MapCamera />
 
-      <ambientLight intensity={0.3} />
-      <Environment resolution={tier === 'low' ? 96 : 192}>
+      {/* Luz: ambiente bajo + hemisférico (cielo/piso) + key cálida + relleno frío. */}
+      <ambientLight intensity={0.22} />
+      <hemisphereLight args={['#9fb8ff', '#0a0f1a', 0.35]} />
+      <directionalLight position={[6, 9, 7]} intensity={0.95} color="#fff2e0" />
+      <directionalLight position={[-8, 3, -6]} intensity={0.5} color="#5b7cff" />
+      <Environment resolution={tier === 'low' ? 128 : 256}>
         <Lightformer form="rect" intensity={0.9} position={[0, 4, -6]} scale={[12, 6, 1]} color="#9fb8ff" />
         <Lightformer form="circle" intensity={1.2} position={[5, -2, 4]} scale={5} color="#3ddc84" />
         <Lightformer form="circle" intensity={1} position={[-5, 1, 3]} scale={5} color="#b39dff" />
@@ -55,14 +60,15 @@ export function MapScene() {
 
       <Suspense fallback={null}>
         <Backdrop />
+        <MapGround />
         <MapEdges />
         <MapNodes />
         <SceneReady />
       </Suspense>
 
-      <Particles radius={18} color="#7d93c8" density={tier === 'low' ? 0.3 : 0.7} />
+      <Particles radius={18} color="#7d93c8" density={tier === 'low' ? 0.6 : 0.85} />
 
-      <Effects bloom vignette chromaticAberration bloomIntensity={1.15} />
+      <Effects bloom vignette chromaticAberration colorGrade depthOfField bloomIntensity={1.15} />
 
       <Suspense fallback={null}>
         <DebugPerf />
