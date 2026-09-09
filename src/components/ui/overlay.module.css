@@ -188,17 +188,11 @@
   transition: opacity 0.6s ease, transform 0.6s ease;
 }
 .introMark {
-  display: inline-grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--accent, #3ddc84);
-  border-radius: 5px;
-  color: var(--accent, #3ddc84);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1rem;
-  margin-bottom: 1.4rem;
+  display: block;
+  width: 40px;
+  height: 40px;
+  color: var(--ink);
+  margin-bottom: 1.3rem;
 }
 .intro[data-dim] {
   opacity: 0;

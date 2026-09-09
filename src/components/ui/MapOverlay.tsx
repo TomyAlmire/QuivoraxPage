@@ -2,6 +2,7 @@ import { useEffect, useRef, type CSSProperties } from 'react';
 import { useMapStore } from '@/store/useMapStore';
 import { BRANCHES, NODE_BY_ID } from '@/data/map';
 import { Minimap } from './Minimap';
+import { Logo } from './Logo';
 import s from './overlay.module.css';
 
 /**
@@ -27,7 +28,7 @@ export function MapOverlay() {
       )}
 
       <div className={s.intro} data-dim={dimIntro || undefined}>
-        <span className={s.introMark}>Q</span>
+        <Logo className={s.introMark} title="Quivorax" />
         <p className={s.introKicker}>Quivorax · el mapa</p>
         <h1 className={s.introTitle}>Tres ramas, un mismo criterio.</h1>
         <p className={s.introHint}>Elegí una rama · o tocá un nodo</p>

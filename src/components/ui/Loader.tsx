@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useProgress } from '@react-three/drei';
 import { useAppStore } from '@/store/useAppStore';
+import { Logo } from './Logo';
 import styles from './Loader.module.css';
 
 /**
@@ -42,7 +43,7 @@ export function Loader() {
   return (
     <div className={styles.loader} data-hidden={hidden || undefined} aria-hidden={hidden}>
       <div className={styles.inner}>
-        <span className={styles.mark}>Q</span>
+        <Logo className={styles.mark} title="Quivorax" />
         <div className={styles.bar}>
           <i style={{ transform: `scaleX(${shown / 100})` }} />
         </div>

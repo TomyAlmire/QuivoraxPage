@@ -21,15 +21,10 @@
 }
 
 .mark {
-  display: grid;
-  place-items: center;
+  display: block;
   width: 34px;
   height: 34px;
-  border: 1px solid var(--accent, #3ddc84);
-  border-radius: 4px;
-  color: var(--accent, #3ddc84);
-  font-family: var(--font-display, sans-serif);
-  font-weight: 600;
+  color: var(--ink, #e9eef3);
 }
 
 .bar {

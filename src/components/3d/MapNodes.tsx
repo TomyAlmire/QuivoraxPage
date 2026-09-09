@@ -357,7 +357,7 @@ function NodeMesh({ node }: { node: MapNode }) {
                 padding: '5px 11px',
                 borderRadius: 999,
                 border: `1px solid ${colorHex}`,
-                background: 'rgba(255,210,122,0.14)',
+                background: 'rgba(255,138,92,0.16)',
                 boxShadow: `0 0 18px -2px ${colorHex}`,
                 backdropFilter: 'blur(3px)',
               }}

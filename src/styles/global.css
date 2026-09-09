@@ -4,8 +4,8 @@
   --ink: #e9eef3;
   --ink-dim: #9aa7b4;
   --ink-mute: #5f6b78;
-  --accent: #3ddc84;
-  --accent-2: #6ea8fe;
+  --accent: #4d9bff;
+  --accent-2: #f06fbd;
   --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
@@ -59,7 +59,7 @@ canvas {
 
 ::selection {
   background: var(--accent);
-  color: #062012;
+  color: #041224;
 }
 
 #root {

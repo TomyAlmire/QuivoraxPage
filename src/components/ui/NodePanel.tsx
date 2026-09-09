@@ -28,7 +28,11 @@ export function NodePanel() {
                 display: 'inline-block',
               }}
             />
-            {n.kind === 'contact' ? 'Contacto' : branchLabel}
+            {n.kind === 'contact'
+              ? 'Contacto'
+              : n.variant === 'work'
+                ? `Trabajo · ${branchLabel}`
+                : branchLabel}
           </span>
 
           <h2 className={s.panelTitle}>{n.title}</h2>
@@ -41,7 +45,22 @@ export function NodePanel() {
                 </a>
               </>
             ) : (
-              n.body
+              <>
+                {n.body}
+                {n.url && (
+                  <>
+                    {' '}
+                    <a
+                      className={s.panelMail}
+                      href={n.url}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Ver sitio ↗
+                    </a>
+                  </>
+                )}
+              </>
             )}
           </p>
 

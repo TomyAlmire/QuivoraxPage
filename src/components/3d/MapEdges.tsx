@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { EDGES, NODE_BY_ID, nodeColor } from '@/data/map';
+import { CONTACT_COLOR, EDGES, NODE_BY_ID, nodeColor } from '@/data/map';
 import { useMapStore } from '@/store/useMapStore';
 
 /**
@@ -22,7 +22,7 @@ export function MapEdges() {
       const contact = na.kind === 'contact' || nb.kind === 'contact';
       // color = dorado si toca el CTA; si no, el de la rama (o gris para root-root)
       const owner = na.branch ?? nb.branch;
-      c.set(contact ? '#ffd27a' : owner ? nodeColor(na.branch ? na : nb) : '#8ea3c8');
+      c.set(contact ? CONTACT_COLOR : owner ? nodeColor(na.branch ? na : nb) : '#8ea3c8');
       for (let v = 0; v < 6; v += 3) {
         baseColors[i * 6 + v] = c.r;
         baseColors[i * 6 + v + 1] = c.g;

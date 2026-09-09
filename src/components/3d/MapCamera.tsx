@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { gsap } from '@/lib/gsap';
 import { useMapStore } from '@/store/useMapStore';
 import { useAppStore } from '@/store/useAppStore';
-import { NODE_BY_ID, branchCenter, type BranchId } from '@/data/map';
+import { NODES, NODE_BY_ID, branchCenter, type BranchId } from '@/data/map';
 
 /**
  * Cámara del mapa. Máquina de estados intro→map→branch→node: cada modo define
@@ -39,8 +39,15 @@ export function MapCamera() {
         look = [p[0], p[1], p[2]];
       } else if (mode === 'branch' && branch) {
         const c = branchCenter(branch);
+        // encuadre según qué tan lejos llegan los nodos de esa rama (web tiene
+        // trabajos en un arco externo, ocupa más).
+        let maxR = 2;
+        for (const n of NODES) {
+          if (n.branch !== branch) continue;
+          maxR = Math.max(maxR, Math.hypot(n.position[0] - c.x, n.position[1] - c.y));
+        }
         const off = c.clone().setLength(3.4);
-        pos = [c.x + off.x * 0.4, c.y + off.y * 0.4 + 1.2, 6.6];
+        pos = [c.x + off.x * 0.4, c.y + off.y * 0.4 + 1.2, Math.max(6.6, maxR * 2.1 + 2.6)];
         look = [c.x, c.y, c.z];
       }
 
