@@ -41,12 +41,11 @@ function nodeActivity(
 ): number {
   if (hovered === node.id) return 1;
   if (mode === 'node') return selected === node.id ? 1 : 0.1;
-  if (mode === 'works') {
-    if (node.kind === 'work') return 0.95;
-    if (node.kind === 'root') return 0.9;
-    return 0.12;
+  // los trabajos aparecen sólo al entrar a Desarrollo Web
+  if (node.kind === 'work') {
+    if (mode === 'branch') return node.branch === branch ? 0.95 : 0.05;
+    return 0.06;
   }
-  if (node.kind === 'work') return mode === 'branch' ? 0.05 : 0.28; // chiquitos adentro del núcleo
   if (mode === 'branch') return node.branch === branch || node.kind === 'root' ? 0.9 : 0.12;
   if (node.kind === 'root') return 1;
   if (node.kind === 'contact') return 0.92; // el CTA "Trabajemos" siempre destaca
@@ -56,7 +55,7 @@ function nodeActivity(
 /** ¿mostrar la etiqueta de texto de este nodo? */
 function labelVisibility(node: MapNode, mode: string, branch: string | null, hovered: string | null): number {
   if (hovered === node.id) return 1;
-  if (node.kind === 'work') return mode === 'works' ? 0.9 : 0;
+  if (node.kind === 'work') return mode === 'branch' && node.branch === branch ? 0.9 : 0;
   if (node.kind === 'root') return mode === 'map' || mode === 'intro' ? 0.9 : 0;
   if (node.kind === 'contact') {
     if (mode === 'map' || mode === 'intro') return 1;
@@ -117,13 +116,12 @@ function NodeMesh({ node }: { node: MapNode }) {
         : isContact
           ? 0.3
           : isWork
-            ? 0.16
+            ? 0.22
             : 0.19;
   const showRing = node.kind === 'root' || node.kind === 'core' || isContact;
 
   const setHovered = useMapStore((s) => s.setHovered);
   const goNode = useMapStore((s) => s.goNode);
-  const goWorks = useMapStore((s) => s.goWorks);
 
   useFrame((state, delta) => {
     const { mode, branch, node: selected, hovered } = useMapStore.getState();
@@ -211,11 +209,6 @@ function NodeMesh({ node }: { node: MapNode }) {
   };
   const onClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
-    // en el mapa, tocar un trabajo (chiquito, adentro del núcleo) = entrar al núcleo
-    if (isWork && useMapStore.getState().mode !== 'works') {
-      goWorks();
-      return;
-    }
     goNode(node.id);
   };
 

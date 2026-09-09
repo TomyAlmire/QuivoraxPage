@@ -179,14 +179,35 @@ function build(): { nodes: MapNode[]; edges: [string, string][] } {
       });
     };
 
-    const all = LEAVES[b.id];
-    const services = all.filter((l) => (l.variant ?? 'service') === 'service');
-    const works = all.filter((l) => l.variant === 'work');
     // servicios: hacia el centro (step 2π/3 = idéntico al layout original)
-    placeLeaves(services, LEAF_DIST, (2 * Math.PI) / 3, b.angle + Math.PI, 3);
-    // trabajos: arco externo, del lado opuesto al centro
-    if (works.length) {
-      placeLeaves(works, WORK_DIST, Math.min(0.62, (Math.PI * 0.55) / works.length), b.angle, 30);
+    placeLeaves(LEAVES[b.id], LEAF_DIST, (2 * Math.PI) / 3, b.angle + Math.PI, 3);
+
+    // Trabajos del portfolio: van en Desarrollo Web, en un arco externo
+    // (del lado opuesto al centro), como un segundo anillo de la rama.
+    if (b.id === 'web') {
+      const n = WORKS.length;
+      const step = Math.min(0.62, (Math.PI * 0.62) / n);
+      WORKS.forEach((w, i) => {
+        const a = b.angle + (i - (n - 1) / 2) * step;
+        const wx = cx + Math.cos(a) * WORK_DIST;
+        const wy = cy + Math.sin(a) * WORK_DIST;
+        const wz = cz + jitter(bi * 10 + i + 30) * 0.4;
+        const id = `work-${w.id}`;
+        nodes.push({
+          id,
+          label: w.name,
+          branch: 'web',
+          kind: 'work',
+          position: [wx, wy, wz],
+          title: w.name,
+          body: w.blurb,
+          variant: 'work',
+          url: w.url,
+          color: w.accent,
+          image: w.shot,
+        });
+        edges.push([b.coreId, id]);
+      });
     }
   });
 
@@ -201,32 +222,6 @@ function build(): { nodes: MapNode[]; edges: [string, string][] } {
     body: 'Contame qué necesitás y lo charlamos. Respondo en menos de 24 h — hola@quivorax.com',
   });
   edges.push(['quivorax', 'trabajemos']);
-
-  // Trabajos: pequeños orbes DENTRO/alrededor del núcleo (no en otra rama).
-  // Diamante compacto delante del orbe central; se agrandan al enfocar el núcleo.
-  const WORK_SLOTS: [number, number, number][] = [
-    [-0.86, 0.66, 1.4],
-    [0.86, 0.66, 1.4],
-    [-0.86, -0.78, 1.4],
-    [0.86, -0.78, 1.4],
-  ];
-  WORKS.forEach((w, i) => {
-    const id = `work-${w.id}`;
-    nodes.push({
-      id,
-      label: w.name,
-      branch: null,
-      kind: 'work',
-      position: WORK_SLOTS[i % WORK_SLOTS.length],
-      title: w.name,
-      body: w.blurb,
-      variant: 'work',
-      url: w.url,
-      color: w.accent,
-      image: w.shot,
-    });
-    edges.push(['quivorax', id]);
-  });
 
   return { nodes, edges };
 }

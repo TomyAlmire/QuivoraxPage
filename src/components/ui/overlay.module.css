@@ -235,26 +235,6 @@
   letter-spacing: 0.06em;
   color: var(--ink-mute);
 }
-.introWorks {
-  margin-top: 1.1rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.55rem 1rem;
-  border: 1px solid var(--accent, #4d9bff);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--accent, #4d9bff) 14%, transparent);
-  color: var(--ink);
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
-  cursor: pointer;
-  transition: transform 0.2s, background 0.2s;
-}
-.introWorks:hover {
-  transform: translateY(-1px);
-  background: color-mix(in srgb, var(--accent, #4d9bff) 24%, transparent);
-}
 
 /* ---- minimap (abajo izquierda) ---- */
 .minimap {

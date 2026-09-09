@@ -56,13 +56,11 @@ export function MapPage() {
       <div className={styles.frame} aria-hidden />
       <div className={styles.frameB} aria-hidden />
       <span className={styles.coord} aria-hidden>
-        {mode === 'works'
-          ? 'NÚCLEO · TRABAJOS'
-          : mode === 'node' && node
-            ? `NODO · ${node}`
-            : mode === 'branch' && branch
-              ? `RAMA · ${branch}`
-              : `MAPA · 03 RAMAS · ${NODES.length} NODOS`}
+        {mode === 'node' && node
+          ? `NODO · ${node}`
+          : mode === 'branch' && branch
+            ? `RAMA · ${branch}`
+            : `MAPA · 03 RAMAS · ${NODES.length} NODOS`}
       </span>
 
       <Loader />

@@ -60,10 +60,7 @@ export function MapEdges() {
       let target = 0.3;
       if (mode === 'branch') target = touchesBranch ? 0.8 : 0.08;
       if (mode === 'node') target = touchesHover || e.a.branch === branch ? 0.7 : 0.07;
-      if (e.work) {
-        // hilos root→trabajo: tenues en el mapa, brillan al entrar al núcleo
-        target = mode === 'works' ? 0.85 : mode === 'node' ? 0.08 : 0.14;
-      }
+      if (e.work && mode !== 'branch') target = 0.06; // el 2º anillo de Web sólo brilla en la rama
       if (e.contact) {
         // el hilo al CTA late suave y nunca se apaga del todo
         target = mode === 'node' ? 0.1 : 0.5 + Math.sin(state.clock.elapsedTime * 1.6) * 0.16;
