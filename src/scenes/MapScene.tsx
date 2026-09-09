@@ -67,15 +67,12 @@ export function MapScene() {
         <SceneReady />
       </Suspense>
 
-      {/* motas de datos flotando en el ciberespacio */}
-      <Particles
-        radius={lite ? 12 : 17}
-        color="#5bd0ff"
-        density={lite ? 0.18 : tier === 'mid' ? 0.6 : 0.7}
-        size={lite ? 13 : 24}
-      />
+      {/* motas de datos — en celular se ven como ruido de color, se omiten */}
+      {!lite && (
+        <Particles radius={17} color="#5bd0ff" density={tier === 'mid' ? 0.55 : 0.7} size={24} />
+      )}
 
-      <Effects bloom vignette colorGrade bloomIntensity={lite ? 0.26 : 0.42} />
+      <Effects bloom vignette colorGrade bloomIntensity={lite ? 0.14 : 0.42} />
 
       <Suspense fallback={null}>{!lite && <DebugPerf />}</Suspense>
     </>

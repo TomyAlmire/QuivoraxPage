@@ -58,10 +58,9 @@ function RadarGrid() {
 }
 
 /** Aura de color por rama: se intensifica cuando esa rama está enfocada. */
-function BranchAuras({ lite }: { lite: boolean }) {
+function BranchAuras() {
   const map = useMemo(() => glowTexture(), []);
   const refs = useRef<Record<string, THREE.SpriteMaterial | null>>({});
-  const k = lite ? 0.55 : 1;
 
   const centers = useMemo(
     () => BRANCHES.map((b) => ({ id: b.id, color: b.color, c: branchCenter(b.id) })),
@@ -77,7 +76,7 @@ function BranchAuras({ lite }: { lite: boolean }) {
       let target = mode === 'map' || mode === 'intro' ? 0.09 : 0.04;
       if (mode === 'branch' && branch === id) target = 0.22;
       if (mode === 'node' && branch === id) target = 0.14;
-      target *= k * (1 + Math.sin(state.clock.elapsedTime * 0.6 + id.length) * 0.15);
+      target *= 1 + Math.sin(state.clock.elapsedTime * 0.6 + id.length) * 0.15;
       m.opacity = THREE.MathUtils.lerp(m.opacity, target, damp);
     }
   });
@@ -99,22 +98,22 @@ function BranchAuras({ lite }: { lite: boolean }) {
           />
         </sprite>
       ))}
-      {!lite && (
-        <sprite position={[0, 0, -0.6]} scale={14}>
-          <spriteMaterial map={map} color="#4a6bd8" transparent opacity={0.055} depthWrite={false} blending={THREE.AdditiveBlending} />
-        </sprite>
-      )}
+      <sprite position={[0, 0, -0.6]} scale={14}>
+        <spriteMaterial map={map} color="#4a6bd8" transparent opacity={0.055} depthWrite={false} blending={THREE.AdditiveBlending} />
+      </sprite>
     </>
   );
 }
 
 export function MapAtmosphere() {
   const lite = useAppStore((s) => s.device.lite);
+  // en celular la atmósfera se satura: dejamos sólo el fondo.
+  if (lite) return <GradientBackdrop lite />;
   return (
     <>
-      <GradientBackdrop lite={lite} />
-      <BranchAuras lite={lite} />
-      {!lite && <RadarGrid />}
+      <GradientBackdrop lite={false} />
+      <BranchAuras />
+      <RadarGrid />
     </>
   );
 }

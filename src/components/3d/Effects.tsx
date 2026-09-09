@@ -50,9 +50,9 @@ export function Effects({
 
   // DoF: pasada pesada. Alto siempre; medio sólo en desktop; nunca en 'low'.
   const useDof = depthOfField && !reduced && (tier === 'high' || (tier === 'mid' && !isMobile));
-  const bloomStrength = tier === 'low' ? bloomIntensity * 0.45 : bloomIntensity;
-  const bloomThreshold = tier === 'low' ? 0.94 : 0.9;
-  const sat = tier === 'low' ? 0.02 : 0.12;
+  const bloomStrength = tier === 'low' ? bloomIntensity * 0.4 : bloomIntensity;
+  const bloomThreshold = tier === 'low' ? 0.97 : 0.9;
+  const sat = tier === 'low' ? -0.04 : 0.12;
 
   const passes = useMemo<ReactElement[]>(() => {
     if (reduced) return [];

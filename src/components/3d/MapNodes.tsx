@@ -161,12 +161,13 @@ function NodeMesh({ node }: { node: MapNode }) {
       hud.current.rotation.x += delta * 0.045;
     }
     if (hudMat.current) {
-      hudMat.current.opacity = THREE.MathUtils.lerp(hudMat.current.opacity, 0.05 + act * 0.24, damp);
+      const ht = lite ? 0.03 + act * 0.12 : 0.05 + act * 0.24;
+      hudMat.current.opacity = THREE.MathUtils.lerp(hudMat.current.opacity, ht, damp);
     }
     // halo de borde (fresnel)
     if (rimMat.current) {
       const u = rimMat.current.uniforms.uOpacity as { value: number };
-      u.value = THREE.MathUtils.lerp(u.value, 0.18 + act * 0.7, damp);
+      u.value = THREE.MathUtils.lerp(u.value, lite ? 0.12 + act * 0.42 : 0.18 + act * 0.7, damp);
     }
     // núcleo de energía
     if (core.current) {
@@ -178,15 +179,16 @@ function NodeMesh({ node }: { node: MapNode }) {
       coreMat.current.opacity = THREE.MathUtils.lerp(coreMat.current.opacity, 0.28 + act * 0.5, damp);
     }
     if (coreGlowMat.current) {
-      coreGlowMat.current.opacity = THREE.MathUtils.lerp(coreGlowMat.current.opacity, 0.1 + act * 0.4, damp);
+      const ct = lite ? 0.06 + act * 0.22 : 0.1 + act * 0.4;
+      coreGlowMat.current.opacity = THREE.MathUtils.lerp(coreGlowMat.current.opacity, ct, damp);
     }
     if (glowMat.current) {
-      const target = 0.03 + act * (hovered === node.id ? 0.24 : 0.11);
-      glowMat.current.opacity = THREE.MathUtils.lerp(glowMat.current.opacity, target, damp);
+      const gk = lite ? 0.02 + act * (hovered === node.id ? 0.13 : 0.055) : 0.03 + act * (hovered === node.id ? 0.24 : 0.11);
+      glowMat.current.opacity = THREE.MathUtils.lerp(glowMat.current.opacity, gk, damp);
     }
     if (ring.current && ringMat.current) {
       ring.current.rotation.z = t * (node.kind === 'root' ? 0.25 : 0.5) * (node.position[0] > 0 ? 1 : -1);
-      const rt = showRing ? 0.08 + act * 0.34 : 0;
+      const rt = showRing ? (lite ? 0.05 + act * 0.16 : 0.08 + act * 0.34) : 0;
       ringMat.current.opacity = THREE.MathUtils.lerp(ringMat.current.opacity, rt, damp);
       const rs = (node.kind === 'root' ? 1.5 : 1.05) + Math.sin(t * 1.2 + node.position[1]) * 0.06;
       ring.current.scale.setScalar(rs);

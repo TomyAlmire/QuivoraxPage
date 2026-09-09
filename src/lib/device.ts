@@ -82,14 +82,13 @@ export function getDeviceProfile(): DeviceProfile {
   const cores = typeof navigator !== 'undefined' ? navigator.hardwareConcurrency ?? 4 : 4;
   const memory = typeof navigator !== 'undefined' ? ((navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 4) : 4;
 
-  // Un teléfono moderno con GPU decente NO cae a 'low': queremos que el mapa se
-  // vea completo en mobile (mismo escenario, detalle escalado), no recortado.
-  // Sólo GPUs realmente flojas o equipos con pocos núcleos/memoria van a 'low'.
+  // En celular vamos siempre a 'low': el mapa 3D se mantiene entero (nodos,
+  // líneas, etiquetas) pero se recorta la atmósfera (auras, partículas, bloom),
+  // que en pantalla chica se ve como ruido de color. Safari además esconde el
+  // renderer de la GPU, así que no se puede confiar en `gpu` en iPhone.
   let tier: QualityTier;
-  if (gpu === 'low' || cores <= 3 || memory <= 2) {
+  if (isMobile || gpu === 'low' || cores <= 3 || memory <= 2) {
     tier = 'low';
-  } else if (isMobile) {
-    tier = 'mid';
   } else if (gpu === 'high' && cores >= 8 && memory >= 8) {
     tier = 'high';
   } else {
@@ -101,7 +100,7 @@ export function getDeviceProfile(): DeviceProfile {
     isMobile,
     isTouch,
     prefersReducedMotion,
-    dprMax: tier === 'low' ? 1.5 : isMobile ? 1.75 : tier === 'mid' ? 1.9 : 2,
+    dprMax: tier === 'low' ? (isMobile ? 1.8 : 1.5) : tier === 'mid' ? 1.9 : 2,
     particleBudget: tier === 'low' ? 3000 : tier === 'mid' ? 9000 : 20000,
     heavyPostFX: tier === 'high',
     liveReflections: tier === 'high' && !prefersReducedMotion,
