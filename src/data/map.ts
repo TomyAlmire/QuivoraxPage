@@ -6,14 +6,15 @@
  * Las posiciones se calculan una vez acá para que la escena sea declarativa.
  */
 import * as THREE from 'three';
+import { WORKS } from '@/data/works';
 
 export type BranchId = 'sistemas' | 'ciber' | 'web';
-export type NodeKind = 'core' | 'leaf' | 'root' | 'contact';
+export type NodeKind = 'core' | 'leaf' | 'root' | 'contact' | 'work';
 
 export interface MapNode {
   id: string;
   label: string;
-  branch: BranchId | null; // null = root / contact
+  branch: BranchId | null; // null = root / contact / work
   kind: NodeKind;
   position: [number, number, number];
   /** Título + cuerpo del panel de detalle */
@@ -23,6 +24,10 @@ export interface MapNode {
   variant?: 'service' | 'work';
   /** Link externo (para los trabajos) */
   url?: string;
+  /** Color propio (trabajos) */
+  color?: string;
+  /** Captura de pantalla (trabajos) */
+  image?: string;
 }
 
 export interface Branch {
@@ -197,6 +202,32 @@ function build(): { nodes: MapNode[]; edges: [string, string][] } {
   });
   edges.push(['quivorax', 'trabajemos']);
 
+  // Trabajos: pequeños orbes DENTRO/alrededor del núcleo (no en otra rama).
+  // Diamante compacto delante del orbe central; se agrandan al enfocar el núcleo.
+  const WORK_SLOTS: [number, number, number][] = [
+    [-0.86, 0.66, 1.4],
+    [0.86, 0.66, 1.4],
+    [-0.86, -0.78, 1.4],
+    [0.86, -0.78, 1.4],
+  ];
+  WORKS.forEach((w, i) => {
+    const id = `work-${w.id}`;
+    nodes.push({
+      id,
+      label: w.name,
+      branch: null,
+      kind: 'work',
+      position: WORK_SLOTS[i % WORK_SLOTS.length],
+      title: w.name,
+      body: w.blurb,
+      variant: 'work',
+      url: w.url,
+      color: w.accent,
+      image: w.shot,
+    });
+    edges.push(['quivorax', id]);
+  });
+
   return { nodes, edges };
 }
 
@@ -208,6 +239,7 @@ export const NODE_BY_ID: Record<string, MapNode> = Object.fromEntries(NODES.map(
 
 export function nodeColor(node: MapNode): string {
   if (node.kind === 'contact') return CONTACT_COLOR;
+  if (node.kind === 'work') return node.color ?? BRANCH_COLOR.web;
   if (node.branch) return BRANCH_COLOR[node.branch];
   return BRANCH_COLOR.root;
 }

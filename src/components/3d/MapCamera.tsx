@@ -34,9 +34,10 @@ export function MapCamera() {
         pos = [0, 0.6, 13.5];
         tl.add(() => finishIntro(), 2.1);
       } else if (mode === 'works') {
-        // acercamos al núcleo; la galería tapa casi todo, pero da profundidad
-        pos = [0.6, 0.2, 6];
-        look = [0, 0, 0];
+        // nos metemos al núcleo: los trabajos (que estaban chiquitos adentro)
+        // quedan grandes y clicables alrededor del orbe central
+        pos = [0.3, 0, 5.3];
+        look = [0, -0.05, 0.9];
       } else if (mode === 'node' && node && NODE_BY_ID[node]) {
         const p = NODE_BY_ID[node].position;
         pos = [p[0] + 1.7, p[1] + 1, p[2] + 3.3];

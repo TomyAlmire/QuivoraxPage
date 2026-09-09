@@ -4,7 +4,6 @@ import { MapScene } from '@/scenes/MapScene';
 import { Loader } from '@/components/ui/Loader';
 import { MapOverlay, useMapKeys } from '@/components/ui/MapOverlay';
 import { NodePanel } from '@/components/ui/NodePanel';
-import { WorksPanel } from '@/components/ui/WorksPanel';
 import { NODES } from '@/data/map';
 import { useHashRoute } from '@/hooks/useHashRoute';
 import { CANVAS_GL, configureRenderer } from '@/lib/three';
@@ -69,7 +68,6 @@ export function MapPage() {
       <Loader />
       <MapOverlay />
       <NodePanel />
-      <WorksPanel />
     </>
   );
 }

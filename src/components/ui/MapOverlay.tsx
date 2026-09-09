@@ -10,20 +10,24 @@ import s from './overlay.module.css';
  * título de intro y minimapa. El panel de detalle es aparte (NodePanel).
  */
 export function MapOverlay() {
-  const { mode, branch, goMap, goBranch, goWorks } = useMapStore();
+  const { mode, branch, node, goMap, goBranch, goWorks } = useMapStore();
 
   const dimIntro = mode !== 'map' && mode !== 'intro';
+  const nodeIsWork = mode === 'node' && NODE_BY_ID[node ?? '']?.kind === 'work';
+  const back = () => (nodeIsWork ? goWorks() : mode === 'node' && branch ? goBranch(branch) : goMap());
+  const backLabel = nodeIsWork
+    ? 'Volver al núcleo'
+    : mode === 'node' && branch
+      ? 'Volver a la rama'
+      : 'Volver al mapa';
 
   return (
-    <div className={s.hud} data-hidden={mode === 'works' || undefined}>
+    <div className={s.hud}>
       <Breadcrumb />
 
       {mode !== 'intro' && mode !== 'map' && (
-        <button
-          className={s.back}
-          onClick={() => (mode === 'node' && branch ? goBranch(branch) : goMap())}
-        >
-          ↖ {mode === 'node' && branch ? 'Volver a la rama' : 'Volver al mapa'}
+        <button className={s.back} onClick={back}>
+          ↖ {backLabel}
         </button>
       )}
 
@@ -87,9 +91,11 @@ export function MapOverlay() {
 }
 
 function Breadcrumb() {
-  const { mode, branch, node, goMap, goBranch } = useMapStore();
+  const { mode, branch, node, goMap, goBranch, goWorks } = useMapStore();
+  const nodeObj = node ? NODE_BY_ID[node] : null;
   const branchLabel = branch ? BRANCHES.find((b) => b.id === branch)?.short : null;
-  const nodeLabel = node ? NODE_BY_ID[node]?.label : null;
+  const nodeLabel = nodeObj?.label ?? null;
+  const inWorks = mode === 'works' || nodeObj?.kind === 'work';
 
   return (
     <div className={s.crumb}>
@@ -100,6 +106,14 @@ function Breadcrumb() {
       >
         ~/quivorax
       </button>
+      {inWorks && (
+        <>
+          <span className={s.crumbSlash}>/</span>
+          <button className={s.crumbSeg} data-current={mode === 'works' || undefined} onClick={goWorks}>
+            trabajos
+          </button>
+        </>
+      )}
       {branchLabel && (
         <>
           <span className={s.crumbSlash}>/</span>
@@ -129,14 +143,16 @@ function Breadcrumb() {
 export function useMapKeys() {
   const goMap = useMapStore((st) => st.goMap);
   const goBranch = useMapStore((st) => st.goBranch);
-  const ref = useRef({ goMap, goBranch });
-  ref.current = { goMap, goBranch };
+  const goWorks = useMapStore((st) => st.goWorks);
+  const ref = useRef({ goMap, goBranch, goWorks });
+  ref.current = { goMap, goBranch, goWorks };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return;
-      const { mode, branch } = useMapStore.getState();
-      if (mode === 'node' && branch) ref.current.goBranch(branch);
+      const { mode, branch, node } = useMapStore.getState();
+      if (mode === 'node' && NODE_BY_ID[node ?? '']?.kind === 'work') ref.current.goWorks();
+      else if (mode === 'node' && branch) ref.current.goBranch(branch);
       else if (mode === 'branch' || mode === 'works') ref.current.goMap();
     };
     window.addEventListener('keydown', onKey);

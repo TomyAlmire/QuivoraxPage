@@ -20,15 +20,25 @@ export function MapEdges() {
       const nb = NODE_BY_ID[b];
       positions.set([...na.position, ...nb.position], i * 6);
       const contact = na.kind === 'contact' || nb.kind === 'contact';
-      // color = dorado si toca el CTA; si no, el de la rama (o gris para root-root)
+      const workNode = na.kind === 'work' ? na : nb.kind === 'work' ? nb : null;
+      // color: dorado si toca el CTA · color del trabajo si toca un trabajo ·
+      // si no, el de la rama (o gris para root-root)
       const owner = na.branch ?? nb.branch;
-      c.set(contact ? CONTACT_COLOR : owner ? nodeColor(na.branch ? na : nb) : '#8ea3c8');
+      c.set(
+        contact
+          ? CONTACT_COLOR
+          : workNode
+            ? nodeColor(workNode)
+            : owner
+              ? nodeColor(na.branch ? na : nb)
+              : '#8ea3c8',
+      );
       for (let v = 0; v < 6; v += 3) {
         baseColors[i * 6 + v] = c.r;
         baseColors[i * 6 + v + 1] = c.g;
         baseColors[i * 6 + v + 2] = c.b;
       }
-      return { a: na, b: nb, contact };
+      return { a: na, b: nb, contact, work: !!workNode };
     });
     return { positions, baseColors, edgeMeta };
   }, []);
@@ -50,6 +60,10 @@ export function MapEdges() {
       let target = 0.3;
       if (mode === 'branch') target = touchesBranch ? 0.8 : 0.08;
       if (mode === 'node') target = touchesHover || e.a.branch === branch ? 0.7 : 0.07;
+      if (e.work) {
+        // hilos root→trabajo: tenues en el mapa, brillan al entrar al núcleo
+        target = mode === 'works' ? 0.85 : mode === 'node' ? 0.08 : 0.14;
+      }
       if (e.contact) {
         // el hilo al CTA late suave y nunca se apaga del todo
         target = mode === 'node' ? 0.1 : 0.5 + Math.sin(state.clock.elapsedTime * 1.6) * 0.16;

@@ -3,7 +3,6 @@ import { useFrame, type ThreeEvent } from '@react-three/fiber';
 import { Billboard, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { NODES, nodeColor, type MapNode } from '@/data/map';
-import { WORKS } from '@/data/works';
 import { useMapStore } from '@/store/useMapStore';
 import { useAppStore } from '@/store/useAppStore';
 import { glowTexture, hudSphereTexture } from '@/lib/textures';
@@ -19,14 +18,6 @@ const RIM_VERT = /* glsl */ `
     gl_Position = projectionMatrix * viewMatrix * wp;
   }
 `;
-/** 4 direcciones ~tetraédricas para repartir los "trabajos" dentro del núcleo */
-const TETRA: [number, number, number][] = [
-  [0.577, 0.577, 0.577],
-  [0.577, -0.577, -0.577],
-  [-0.577, 0.577, -0.577],
-  [-0.577, -0.577, 0.577],
-];
-
 const RIM_FRAG = /* glsl */ `
   uniform vec3 uColor;
   uniform float uOpacity;
@@ -50,6 +41,12 @@ function nodeActivity(
 ): number {
   if (hovered === node.id) return 1;
   if (mode === 'node') return selected === node.id ? 1 : 0.1;
+  if (mode === 'works') {
+    if (node.kind === 'work') return 0.95;
+    if (node.kind === 'root') return 0.9;
+    return 0.12;
+  }
+  if (node.kind === 'work') return mode === 'branch' ? 0.05 : 0.28; // chiquitos adentro del núcleo
   if (mode === 'branch') return node.branch === branch || node.kind === 'root' ? 0.9 : 0.12;
   if (node.kind === 'root') return 1;
   if (node.kind === 'contact') return 0.92; // el CTA "Trabajemos" siempre destaca
@@ -59,6 +56,7 @@ function nodeActivity(
 /** ¿mostrar la etiqueta de texto de este nodo? */
 function labelVisibility(node: MapNode, mode: string, branch: string | null, hovered: string | null): number {
   if (hovered === node.id) return 1;
+  if (node.kind === 'work') return mode === 'works' ? 0.9 : 0;
   if (node.kind === 'root') return mode === 'map' || mode === 'intro' ? 0.9 : 0;
   if (node.kind === 'contact') {
     if (mode === 'map' || mode === 'intro') return 1;
@@ -90,7 +88,6 @@ function NodeMesh({ node }: { node: MapNode }) {
   const ring = useRef<THREE.Mesh>(null);
   const ping = useRef<THREE.Mesh>(null);
   const pingMat = useRef<THREE.MeshBasicMaterial>(null);
-  const coreOrbit = useRef<THREE.Group>(null);
   const labelWrap = useRef<HTMLDivElement>(null);
 
   const color = useMemo(() => new THREE.Color(nodeColor(node)), [node]);
@@ -111,12 +108,22 @@ function NodeMesh({ node }: { node: MapNode }) {
   const glass = useAppStore((s) => s.device.glassTransmission);
 
   const isContact = node.kind === 'contact';
+  const isWork = node.kind === 'work';
   const baseSize =
-    node.kind === 'root' ? 0.52 : node.kind === 'core' ? 0.36 : isContact ? 0.3 : 0.19;
+    node.kind === 'root'
+      ? 0.52
+      : node.kind === 'core'
+        ? 0.36
+        : isContact
+          ? 0.3
+          : isWork
+            ? 0.16
+            : 0.19;
   const showRing = node.kind === 'root' || node.kind === 'core' || isContact;
 
   const setHovered = useMapStore((s) => s.setHovered);
   const goNode = useMapStore((s) => s.goNode);
+  const goWorks = useMapStore((s) => s.goWorks);
 
   useFrame((state, delta) => {
     const { mode, branch, node: selected, hovered } = useMapStore.getState();
@@ -176,13 +183,6 @@ function NodeMesh({ node }: { node: MapNode }) {
       const rs = (node.kind === 'root' ? 1.5 : 1.05) + Math.sin(t * 1.2 + node.position[1]) * 0.06;
       ring.current.scale.setScalar(rs);
     }
-    // núcleo Quivorax: los trabajos orbitando adentro del orbe
-    if (coreOrbit.current) {
-      coreOrbit.current.rotation.y += delta * 0.3;
-      coreOrbit.current.rotation.x += delta * 0.11;
-      const os = (mode === 'works' ? 1.15 : hovered === node.id ? 1.08 : 1) * (0.95 + act * 0.05);
-      coreOrbit.current.scale.setScalar(THREE.MathUtils.lerp(coreOrbit.current.scale.x, os, damp));
-    }
     // "ping" del CTA: anillo que se expande y se desvanece en loop
     if (ping.current && pingMat.current) {
       const cyc = (t * 0.5) % 1;
@@ -211,6 +211,11 @@ function NodeMesh({ node }: { node: MapNode }) {
   };
   const onClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
+    // en el mapa, tocar un trabajo (chiquito, adentro del núcleo) = entrar al núcleo
+    if (isWork && useMapStore.getState().mode !== 'works') {
+      goWorks();
+      return;
+    }
     goNode(node.id);
   };
 
@@ -288,21 +293,6 @@ function NodeMesh({ node }: { node: MapNode }) {
             />
           </sprite>
         </group>
-
-        {/* núcleo Quivorax: los 4 trabajos flotando adentro del orbe */}
-        {node.kind === 'root' && (
-          <group ref={coreOrbit}>
-            {WORKS.map((w, i) => {
-              const dir = TETRA[i % TETRA.length];
-              return (
-                <mesh key={w.id} position={[dir[0] * 0.52, dir[1] * 0.52, dir[2] * 0.52]} scale={0.11}>
-                  <sphereGeometry args={[1, 12, 12]} />
-                  <meshBasicMaterial color={w.accent} toneMapped={false} transparent opacity={0.92} />
-                </mesh>
-              );
-            })}
-          </group>
-        )}
       </group>
 
       {/* zona de toque ampliada (mobile): invisible pero sí recibe raycast */}

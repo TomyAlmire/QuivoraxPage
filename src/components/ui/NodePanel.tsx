@@ -8,16 +8,24 @@ import s from './overlay.module.css';
  * `mode === 'node'`. Para el nodo de contacto muestra el mail.
  */
 export function NodePanel() {
-  const { mode, node, branch, goBranch, goMap } = useMapStore();
+  const { mode, node, branch, goBranch, goMap, goWorks } = useMapStore();
   const n = node ? NODE_BY_ID[node] : null;
   const open = mode === 'node' && !!n;
   const color = n ? nodeColor(n) : '#fff';
+  const isWork = n?.kind === 'work';
   const branchLabel = n?.branch ? BRANCHES.find((b) => b.id === n.branch)?.label : null;
+  const back = () => (isWork ? goWorks() : n?.branch ? goBranch(n.branch) : goMap());
 
   return (
     <aside className={s.panel} data-open={open || undefined} style={{ '--pc': color } as CSSProperties}>
       {n && (
         <>
+          {isWork && n.image && (
+            <figure className={s.panelShot}>
+              <img src={n.image} alt={`Vista de ${n.title}`} />
+            </figure>
+          )}
+
           <span className={s.panelTag}>
             <span
               style={{
@@ -28,11 +36,7 @@ export function NodePanel() {
                 display: 'inline-block',
               }}
             />
-            {n.kind === 'contact'
-              ? 'Contacto'
-              : n.variant === 'work'
-                ? `Trabajo · ${branchLabel}`
-                : branchLabel}
+            {n.kind === 'contact' ? 'Contacto' : isWork ? 'Trabajo' : branchLabel}
           </span>
 
           <h2 className={s.panelTitle}>{n.title}</h2>
@@ -64,11 +68,13 @@ export function NodePanel() {
             )}
           </p>
 
-          <button
-            className={s.panelClose}
-            onClick={() => (n.branch ? goBranch(n.branch) : goMap())}
-          >
-            {branch ? '↖ volver a la rama' : '↖ volver al mapa'} · esc
+          <button className={s.panelClose} onClick={back}>
+            {isWork
+              ? '↖ volver al núcleo'
+              : branch
+                ? '↖ volver a la rama'
+                : '↖ volver al mapa'}{' '}
+            · esc
           </button>
         </>
       )}
