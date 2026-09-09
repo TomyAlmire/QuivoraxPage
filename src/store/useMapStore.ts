@@ -14,7 +14,7 @@ import { create } from 'zustand';
 import type { BranchId } from '@/data/map';
 import { NODE_BY_ID } from '@/data/map';
 
-export type MapMode = 'intro' | 'map' | 'branch' | 'node';
+export type MapMode = 'intro' | 'map' | 'branch' | 'node' | 'works';
 
 interface MapState {
   mode: MapMode;
@@ -31,10 +31,12 @@ interface MapState {
   goMap: () => void;
   goBranch: (branch: BranchId) => void;
   goNode: (nodeId: string) => void;
+  /** El "núcleo" Quivorax: abre la galería interactiva de trabajos */
+  goWorks: () => void;
   finishIntro: () => void;
 
   /** Aplica un estado que viene del hash (sin volver a escribir el hash) */
-  applyRoute: (route: { branch: BranchId | null; node: string | null }) => void;
+  applyRoute: (route: { branch: BranchId | null; node: string | null; works?: boolean }) => void;
 }
 
 export const useMapStore = create<MapState>((set, get) => ({
@@ -54,20 +56,26 @@ export const useMapStore = create<MapState>((set, get) => ({
   goNode: (nodeId) => {
     const n = NODE_BY_ID[nodeId];
     if (!n) return;
-    // Un core abre su rama; una hoja/contacto abre el panel
-    if (n.kind === 'core' && n.branch) {
+    // El núcleo abre los trabajos; un core abre su rama; hoja/contacto → panel
+    if (n.kind === 'root') {
+      set({ mode: 'works', branch: null, node: null, userControlled: false });
+    } else if (n.kind === 'core' && n.branch) {
       set({ mode: 'branch', branch: n.branch, node: null, userControlled: false });
     } else {
       set({ mode: 'node', node: nodeId, branch: n.branch ?? get().branch, userControlled: false });
     }
   },
 
+  goWorks: () => set({ mode: 'works', branch: null, node: null, userControlled: false }),
+
   finishIntro: () => {
     if (get().mode === 'intro') set({ mode: 'map' });
   },
 
-  applyRoute: ({ branch, node }) => {
-    if (node) {
+  applyRoute: ({ branch, node, works }) => {
+    if (works) {
+      set({ mode: 'works', branch: null, node: null });
+    } else if (node) {
       const n = NODE_BY_ID[node];
       set({ mode: 'node', node, branch: n?.branch ?? branch });
     } else if (branch) {

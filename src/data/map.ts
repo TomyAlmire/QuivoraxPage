@@ -90,10 +90,6 @@ const LEAVES: Record<BranchId, LeafSeed[]> = {
     { id: 'web-uxui', label: 'Diseño UX/UI', title: 'Diseño UX/UI', body: 'Experiencias claras, simples y fáciles de usar. Menos fricción, más gente que llega a donde quería ir.' },
     { id: 'web-frontend', label: 'Frontend', title: 'Frontend', body: 'Interfaces rápidas, prolijas y adaptadas a cada pantalla. Accesibles y fáciles de mantener.' },
     { id: 'web-backend', label: 'Backend', title: 'Backend', body: 'Que la parte técnica funcione, conecte y responda. APIs, datos e integraciones que no se rompen.' },
-    { id: 'web-lashes', label: 'LashesByMiri', title: 'LashesByMiri', variant: 'work', url: 'https://miriespeche.github.io/LashesByMiri/', body: 'Sitio para un estudio de pestañas: portfolio, precios y turnos, pensado primero para el celular.' },
-    { id: 'web-claricolor', label: 'Clari Color', title: 'Clari Color', variant: 'work', body: 'Marca de indumentaria: catálogo ordenado y una compra simple, fácil de actualizar.' },
-    { id: 'web-espacioromero', label: 'Espacio Romero', title: 'Espacio Romero', variant: 'work', body: 'Sitio de una sola página: qué ofrecen, dónde están y cómo contactar, sin vueltas.' },
-    { id: 'web-dalmata', label: 'Dálmata', title: 'Dálmata', variant: 'work', body: 'Landing con identidad propia, hecha para que se entienda rápido y te escriban.' },
   ],
   sistemas: [
     { id: 'sis-procesos', label: 'Ordenar procesos', title: 'Ordenar procesos', body: 'Una forma más clara y simple de trabajar. Sacamos los pasos que sobran antes de automatizar nada.' },

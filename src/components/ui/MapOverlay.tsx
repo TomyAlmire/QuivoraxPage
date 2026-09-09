@@ -10,12 +10,12 @@ import s from './overlay.module.css';
  * título de intro y minimapa. El panel de detalle es aparte (NodePanel).
  */
 export function MapOverlay() {
-  const { mode, branch, goMap, goBranch } = useMapStore();
+  const { mode, branch, goMap, goBranch, goWorks } = useMapStore();
 
   const dimIntro = mode !== 'map' && mode !== 'intro';
 
   return (
-    <div className={s.hud}>
+    <div className={s.hud} data-hidden={mode === 'works' || undefined}>
       <Breadcrumb />
 
       {mode !== 'intro' && mode !== 'map' && (
@@ -31,7 +31,10 @@ export function MapOverlay() {
         <Logo className={s.introMark} title="Quivorax" />
         <p className={s.introKicker}>Quivorax · el mapa</p>
         <h1 className={s.introTitle}>Tres ramas, un mismo criterio.</h1>
-        <p className={s.introHint}>Elegí una rama · o tocá un nodo</p>
+        <p className={s.introHint}>Elegí una rama · tocá un nodo · o abrí el núcleo</p>
+        <button className={s.introWorks} onClick={goWorks}>
+          Ver trabajos →
+        </button>
       </div>
 
       <div className={s.legend} data-dim={dimIntro || undefined} aria-label="Ramas">
@@ -64,6 +67,13 @@ export function MapOverlay() {
             {b.short}
           </button>
         ))}
+        <button
+          className={`${s.branchBtn} ${s.branchReset}`}
+          onClick={goWorks}
+          title="Trabajos"
+        >
+          trabajos
+        </button>
         {(mode === 'branch' || mode === 'node') && (
           <button className={`${s.branchBtn} ${s.branchReset}`} onClick={goMap}>
             mapa
@@ -127,7 +137,7 @@ export function useMapKeys() {
       if (e.key !== 'Escape') return;
       const { mode, branch } = useMapStore.getState();
       if (mode === 'node' && branch) ref.current.goBranch(branch);
-      else if (mode === 'branch') ref.current.goMap();
+      else if (mode === 'branch' || mode === 'works') ref.current.goMap();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);

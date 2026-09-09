@@ -4,6 +4,7 @@ import { MapScene } from '@/scenes/MapScene';
 import { Loader } from '@/components/ui/Loader';
 import { MapOverlay, useMapKeys } from '@/components/ui/MapOverlay';
 import { NodePanel } from '@/components/ui/NodePanel';
+import { WorksPanel } from '@/components/ui/WorksPanel';
 import { NODES } from '@/data/map';
 import { useHashRoute } from '@/hooks/useHashRoute';
 import { CANVAS_GL, configureRenderer } from '@/lib/three';
@@ -56,16 +57,19 @@ export function MapPage() {
       <div className={styles.frame} aria-hidden />
       <div className={styles.frameB} aria-hidden />
       <span className={styles.coord} aria-hidden>
-        {mode === 'node' && node
-          ? `NODO · ${node}`
-          : mode === 'branch' && branch
-            ? `RAMA · ${branch}`
-            : `MAPA · 03 RAMAS · ${NODES.length} NODOS`}
+        {mode === 'works'
+          ? 'NÚCLEO · TRABAJOS'
+          : mode === 'node' && node
+            ? `NODO · ${node}`
+            : mode === 'branch' && branch
+              ? `RAMA · ${branch}`
+              : `MAPA · 03 RAMAS · ${NODES.length} NODOS`}
       </span>
 
       <Loader />
       <MapOverlay />
       <NodePanel />
+      <WorksPanel />
     </>
   );
 }

@@ -3,6 +3,7 @@ import { useFrame, type ThreeEvent } from '@react-three/fiber';
 import { Billboard, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { NODES, nodeColor, type MapNode } from '@/data/map';
+import { WORKS } from '@/data/works';
 import { useMapStore } from '@/store/useMapStore';
 import { useAppStore } from '@/store/useAppStore';
 import { glowTexture, hudSphereTexture } from '@/lib/textures';
@@ -18,6 +19,14 @@ const RIM_VERT = /* glsl */ `
     gl_Position = projectionMatrix * viewMatrix * wp;
   }
 `;
+/** 4 direcciones ~tetraédricas para repartir los "trabajos" dentro del núcleo */
+const TETRA: [number, number, number][] = [
+  [0.577, 0.577, 0.577],
+  [0.577, -0.577, -0.577],
+  [-0.577, 0.577, -0.577],
+  [-0.577, -0.577, 0.577],
+];
+
 const RIM_FRAG = /* glsl */ `
   uniform vec3 uColor;
   uniform float uOpacity;
@@ -81,6 +90,7 @@ function NodeMesh({ node }: { node: MapNode }) {
   const ring = useRef<THREE.Mesh>(null);
   const ping = useRef<THREE.Mesh>(null);
   const pingMat = useRef<THREE.MeshBasicMaterial>(null);
+  const coreOrbit = useRef<THREE.Group>(null);
   const labelWrap = useRef<HTMLDivElement>(null);
 
   const color = useMemo(() => new THREE.Color(nodeColor(node)), [node]);
@@ -165,6 +175,13 @@ function NodeMesh({ node }: { node: MapNode }) {
       ringMat.current.opacity = THREE.MathUtils.lerp(ringMat.current.opacity, rt, damp);
       const rs = (node.kind === 'root' ? 1.5 : 1.05) + Math.sin(t * 1.2 + node.position[1]) * 0.06;
       ring.current.scale.setScalar(rs);
+    }
+    // núcleo Quivorax: los trabajos orbitando adentro del orbe
+    if (coreOrbit.current) {
+      coreOrbit.current.rotation.y += delta * 0.3;
+      coreOrbit.current.rotation.x += delta * 0.11;
+      const os = (mode === 'works' ? 1.15 : hovered === node.id ? 1.08 : 1) * (0.95 + act * 0.05);
+      coreOrbit.current.scale.setScalar(THREE.MathUtils.lerp(coreOrbit.current.scale.x, os, damp));
     }
     // "ping" del CTA: anillo que se expande y se desvanece en loop
     if (ping.current && pingMat.current) {
@@ -271,6 +288,21 @@ function NodeMesh({ node }: { node: MapNode }) {
             />
           </sprite>
         </group>
+
+        {/* núcleo Quivorax: los 4 trabajos flotando adentro del orbe */}
+        {node.kind === 'root' && (
+          <group ref={coreOrbit}>
+            {WORKS.map((w, i) => {
+              const dir = TETRA[i % TETRA.length];
+              return (
+                <mesh key={w.id} position={[dir[0] * 0.52, dir[1] * 0.52, dir[2] * 0.52]} scale={0.11}>
+                  <sphereGeometry args={[1, 12, 12]} />
+                  <meshBasicMaterial color={w.accent} toneMapped={false} transparent opacity={0.92} />
+                </mesh>
+              );
+            })}
+          </group>
+        )}
       </group>
 
       {/* zona de toque ampliada (mobile): invisible pero sí recibe raycast */}
